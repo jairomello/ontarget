@@ -133,6 +133,9 @@ describe("change_log junto ao sync", () => {
 
     await post(url, { upserts: { tasks: [taskRow("log-5", projectId, "Inicial")] } });
     const cutoff = Date.now();
+    // Duas gravações no mesmo milissegundo têm o mesmo `changedAt` e ficam
+    // indistinguíveis pelo filtro; espera o relógio virar antes da segunda.
+    await new Promise((resolve) => setTimeout(resolve, 5));
     await post(url, { upserts: { tasks: [taskRow("log-5", projectId, "Tarde")] } });
 
     const since = db
