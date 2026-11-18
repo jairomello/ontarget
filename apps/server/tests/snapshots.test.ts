@@ -2,9 +2,9 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
-import { createApp } from "../src/app";
 import { createDb, type Db } from "../src/db/index";
 import * as schema from "../src/db/schema";
+import { createAuthedApp } from "./helpers/auth";
 import { createSnapshot, listSnapshots, maybeSnapshot } from "../src/services/snapshot";
 
 const TEST_ROOT = "/tmp/opencode/ontarget-tests";
@@ -13,7 +13,7 @@ mkdirSync(TEST_ROOT, { recursive: true });
 const dir = mkdtempSync(path.join(TEST_ROOT, "snapshots-"));
 const dbPath = path.join(dir, "snapshots.db");
 const db: Db = createDb(dbPath);
-const app = createApp({ db });
+const { fetch } = await createAuthedApp(db);
 
 afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
@@ -22,7 +22,7 @@ afterAll(() => {
 const now = Date.now();
 
 async function post(url: string, body?: unknown) {
-  const res = await app.fetch(
+  const res = await fetch(
     new Request(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -111,7 +111,7 @@ describe("recuperação após dados corrompidos", () => {
       .run();
 
     // abertura normal falha e informa os snapshots disponíveis
-    const opened = await app.fetch(
+    const opened = await fetch(
       new Request(`http://localhost/api/projects/${projectId}`),
     );
     expect(opened.status).toBe(409);
@@ -128,7 +128,7 @@ describe("recuperação após dados corrompidos", () => {
     });
     expect(recovered.status).toBe(200);
 
-    const after = await app.fetch(
+    const after = await fetch(
       new Request(`http://localhost/api/projects/${projectId}`),
     );
     expect(after.status).toBe(200);

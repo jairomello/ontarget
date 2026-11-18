@@ -130,8 +130,8 @@
   --border-default: #232936;
   --border-strong: #333b4d;
 
-  --accent: #6366f1;
-  --accent-soft: rgba(99, 102, 241, 0.18);
+  --accent: #5b5bf0;
+  --accent-soft: rgba(91, 91, 240, 0.18);
   --accent-fg: #ffffff;
 
   --brand-bar: linear-gradient(115deg, #171442 0%, #3b34c4 45%, #5b21b6 78%, #7e22ce 100%);
@@ -208,4 +208,111 @@
     --duration-base: 0ms;
     --duration-slow: 0ms;
   }
+}
+
+
+/* --------------------------------------------------------------------------
+   Paletas de cor (specs/ui-shell — "Paletas de cor")
+   Sobrescrevem só os tokens de identidade. `--accent-fg` sobre `--accent`
+   mantém ≥ 4,5:1 em todas as combinações (testado em theme.test.ts).
+   -------------------------------------------------------------------------- */
+
+[data-palette="indigo"][data-theme="light"] {
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.12);
+  --accent-fg: #ffffff;
+  --bar-task: #6366f1;
+  --bar-task-progress: #4338ca;
+  --brand-bar: linear-gradient(115deg, #312e81 0%, #4f46e5 46%, #6d28d9 76%, #9333ea 100%);
+  --brand-gradient: linear-gradient(120deg, #4f46e5, #7c3aed 55%, #db2777);
+}
+
+[data-palette="indigo"][data-theme="dark"] {
+  --accent: #5b5bf0;
+  --accent-soft: rgba(91, 91, 240, 0.18);
+  --accent-fg: #ffffff;
+  --bar-task: #818cf8;
+  --bar-task-progress: #a5b4fc;
+  --brand-bar: linear-gradient(115deg, #171442 0%, #5b5bf0 45%, #5b21b6 78%, #7e22ce 100%);
+  --brand-gradient: linear-gradient(120deg, #5b5bf0, #a855f7 55%, #ec4899);
+}
+
+[data-palette="emerald"][data-theme="light"] {
+  --accent: #047857;
+  --accent-soft: rgba(4, 120, 87, 0.12);
+  --accent-fg: #ffffff;
+  --bar-task: #059669;
+  --bar-task-progress: #047857;
+  --brand-bar: linear-gradient(115deg, #064e3b 0%, #047857 46%, #059669 76%, #10b981 100%);
+  --brand-gradient: linear-gradient(120deg, #047857, #10b981 55%, #22d3ee);
+}
+
+[data-palette="emerald"][data-theme="dark"] {
+  --accent: #047857;
+  --accent-soft: rgba(4, 120, 87, 0.18);
+  --accent-fg: #ffffff;
+  --bar-task: #34d399;
+  --bar-task-progress: #6ee7b7;
+  --brand-bar: linear-gradient(115deg, #022c22 0%, #047857 45%, #059669 78%, #10b981 100%);
+  --brand-gradient: linear-gradient(120deg, #059669, #34d399 55%, #22d3ee);
+}
+
+[data-palette="amber"][data-theme="light"] {
+  --accent: #b45309;
+  --accent-soft: rgba(180, 83, 9, 0.12);
+  --accent-fg: #ffffff;
+  --bar-task: #d97706;
+  --bar-task-progress: #b45309;
+  --brand-bar: linear-gradient(115deg, #7c2d12 0%, #b45309 46%, #d97706 76%, #f59e0b 100%);
+  --brand-gradient: linear-gradient(120deg, #b45309, #d97706 55%, #f43f5e);
+}
+
+[data-palette="amber"][data-theme="dark"] {
+  --accent: #b45309;
+  --accent-soft: rgba(180, 83, 9, 0.18);
+  --accent-fg: #ffffff;
+  --bar-task: #fbbf24;
+  --bar-task-progress: #fcd34d;
+  --brand-bar: linear-gradient(115deg, #451a03 0%, #b45309 45%, #d97706 78%, #f59e0b 100%);
+  --brand-gradient: linear-gradient(120deg, #d97706, #fbbf24 55%, #fb7185);
+}
+
+[data-palette="slate"][data-theme="light"] {
+  --accent: #475569;
+  --accent-soft: rgba(71, 85, 105, 0.12);
+  --accent-fg: #ffffff;
+  --bar-task: #64748b;
+  --bar-task-progress: #475569;
+  --brand-bar: linear-gradient(115deg, #1e293b 0%, #475569 46%, #64748b 76%, #94a3b8 100%);
+  --brand-gradient: linear-gradient(120deg, #475569, #64748b 55%, #94a3b8);
+}
+
+[data-palette="slate"][data-theme="dark"] {
+  --accent: #64748b;
+  --accent-soft: rgba(100, 116, 139, 0.18);
+  --accent-fg: #ffffff;
+  --bar-task: #94a3b8;
+  --bar-task-progress: #cbd5e1;
+  --brand-bar: linear-gradient(115deg, #0f172a 0%, #475569 45%, #64748b 78%, #94a3b8 100%);
+  --brand-gradient: linear-gradient(120deg, #64748b, #94a3b8 55%, #cbd5e1);
+}
+
+[data-palette="violet"][data-theme="light"] {
+  --accent: #6d28d9;
+  --accent-soft: rgba(109, 40, 217, 0.12);
+  --accent-fg: #ffffff;
+  --bar-task: #7c3aed;
+  --bar-task-progress: #6d28d9;
+  --brand-bar: linear-gradient(115deg, #4c1d95 0%, #6d28d9 46%, #7c3aed 76%, #a855f7 100%);
+  --brand-gradient: linear-gradient(120deg, #6d28d9, #a855f7 55%, #ec4899);
+}
+
+[data-palette="violet"][data-theme="dark"] {
+  --accent: #7c3aed;
+  --accent-soft: rgba(124, 58, 237, 0.18);
+  --accent-fg: #ffffff;
+  --bar-task: #a78bfa;
+  --bar-task-progress: #c4b5fd;
+  --brand-bar: linear-gradient(115deg, #2e1065 0%, #6d28d9 45%, #7c3aed 78%, #a855f7 100%);
+  --brand-gradient: linear-gradient(120deg, #7c3aed, #a855f7 55%, #f472b6);
 }

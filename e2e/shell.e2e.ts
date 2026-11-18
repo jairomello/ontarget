@@ -48,6 +48,8 @@ test("trocar tema e densidade reflete nos atributos do documento", async ({ page
   const errors = collectPageErrors(page);
 
   await page.goto("/");
+  // Tema e densidade moram no menu de perfil (specs/ui-shell).
+  await page.getByTestId("profile-menu").click();
   await page.getByTestId("theme-select").selectOption("dark");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 

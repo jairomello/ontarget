@@ -2,9 +2,9 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
-import { createApp } from "../src/app";
 import { createDb } from "../src/db/index";
 import * as schema from "../src/db/schema";
+import { createAuthedApp } from "./helpers/auth";
 
 const TEST_ROOT = "/tmp/opencode/ontarget-tests";
 mkdirSync(TEST_ROOT, { recursive: true });
@@ -12,7 +12,7 @@ mkdirSync(TEST_ROOT, { recursive: true });
 const dir = mkdtempSync(path.join(TEST_ROOT, "projects-"));
 const dbPath = path.join(dir, "projects.db");
 const db = createDb(dbPath);
-const app = createApp({ db });
+const { fetch } = await createAuthedApp(db);
 
 afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
@@ -23,7 +23,7 @@ async function json(res: Response): Promise<any> {
 }
 
 async function createProject(name: string, templateKey?: string): Promise<any> {
-  const res = await app.fetch(
+  const res = await fetch(
     new Request("http://localhost/api/projects", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -45,7 +45,7 @@ describe("POST /api/projects", () => {
     expect(summary.task_count).toBe(0);
 
     const opened = await json(
-      await app.fetch(new Request(`http://localhost/api/projects/${project.id}`)),
+      await fetch(new Request(`http://localhost/api/projects/${project.id}`)),
     );
     expect(opened.project.id).toBe(project.id);
     expect(opened.project.name).toBe("Portal Institucional");
@@ -61,7 +61,7 @@ describe("POST /api/projects", () => {
   });
 
   it("rejeita criação sem nome", async () => {
-    const res = await app.fetch(
+    const res = await fetch(
       new Request("http://localhost/api/projects", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -76,7 +76,7 @@ describe("POST /api/projects", () => {
 describe("GET /api/projects", () => {
   it("lista o portfólio com o resumo de cada projeto", async () => {
     const { project } = await createProject("Listagem Teste");
-    const body = await json(await app.fetch(new Request("http://localhost/api/projects")));
+    const body = await json(await fetch(new Request("http://localhost/api/projects")));
 
     expect(Array.isArray(body.projects)).toBe(true);
     const found = body.projects.find((p: any) => p.project_id === project.id);
@@ -91,7 +91,7 @@ describe("PATCH /api/projects/:id", () => {
     const { project } = await createProject("Nome Original");
 
     const patched = await json(
-      await app.fetch(
+      await fetch(
         new Request(`http://localhost/api/projects/${project.id}`, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
@@ -103,14 +103,14 @@ describe("PATCH /api/projects/:id", () => {
     expect(patched.project.color).toBe("#16a34a");
 
     const reopened = await json(
-      await app.fetch(new Request(`http://localhost/api/projects/${project.id}`)),
+      await fetch(new Request(`http://localhost/api/projects/${project.id}`)),
     );
     expect(reopened.project.name).toBe("Nome Alterado");
     expect(reopened.project.color).toBe("#16a34a");
   });
 
   it("responde 404 para projeto inexistente", async () => {
-    const res = await app.fetch(
+    const res = await fetch(
       new Request("http://localhost/api/projects/nao-existe", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -126,7 +126,7 @@ describe("POST /api/projects/:id/duplicate", () => {
     const { project, summary } = await createProject("Original", "entrega-software");
 
     const copy = await json(
-      await app.fetch(
+      await fetch(
         new Request(`http://localhost/api/projects/${project.id}/duplicate`, {
           method: "POST",
         }),
@@ -137,7 +137,7 @@ describe("POST /api/projects/:id/duplicate", () => {
     expect(copy.summary.task_count).toBe(summary.task_count);
 
     // alterar a cópia não toca no original
-    await app.fetch(
+    await fetch(
       new Request(`http://localhost/api/projects/${copy.project.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -146,14 +146,14 @@ describe("POST /api/projects/:id/duplicate", () => {
     );
 
     const original = await json(
-      await app.fetch(new Request(`http://localhost/api/projects/${project.id}`)),
+      await fetch(new Request(`http://localhost/api/projects/${project.id}`)),
     );
     expect(original.project.name).toBe("Original");
     expect(original.summary.task_count).toBe(summary.task_count);
   });
 
   it("responde 404 ao duplicar projeto inexistente", async () => {
-    const res = await app.fetch(
+    const res = await fetch(
       new Request("http://localhost/api/projects/sumido/duplicate", { method: "POST" }),
     );
     expect(res.status).toBe(404);
@@ -164,7 +164,7 @@ describe("POST /api/projects/:id/archive", () => {
   it("move o projeto para a área de arquivados", async () => {
     const { project } = await createProject("Para Arquivar");
 
-    await app.fetch(
+    await fetch(
       new Request(`http://localhost/api/projects/${project.id}/archive`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -172,11 +172,11 @@ describe("POST /api/projects/:id/archive", () => {
       }),
     );
 
-    const active = await json(await app.fetch(new Request("http://localhost/api/projects")));
+    const active = await json(await fetch(new Request("http://localhost/api/projects")));
     expect(active.projects.some((p: any) => p.project_id === project.id)).toBe(false);
 
     const archived = await json(
-      await app.fetch(new Request("http://localhost/api/projects?archived=true")),
+      await fetch(new Request("http://localhost/api/projects?archived=true")),
     );
     expect(archived.projects.some((p: any) => p.project_id === project.id)).toBe(true);
   });
@@ -186,20 +186,20 @@ describe("DELETE /api/projects/:id", () => {
   it("remove o projeto e passa a responder 404", async () => {
     const { project } = await createProject("Para Excluir");
 
-    const removed = await app.fetch(
+    const removed = await fetch(
       new Request(`http://localhost/api/projects/${project.id}`, { method: "DELETE" }),
     );
     expect(removed.status).toBe(204);
 
-    const after = await app.fetch(new Request(`http://localhost/api/projects/${project.id}`));
+    const after = await fetch(new Request(`http://localhost/api/projects/${project.id}`));
     expect(after.status).toBe(404);
 
-    const list = await json(await app.fetch(new Request("http://localhost/api/projects")));
+    const list = await json(await fetch(new Request("http://localhost/api/projects")));
     expect(list.projects.some((p: any) => p.project_id === project.id)).toBe(false);
   });
 
   it("responde 404 ao excluir o que não existe", async () => {
-    const res = await app.fetch(
+    const res = await fetch(
       new Request("http://localhost/api/projects/fantasma", { method: "DELETE" }),
     );
     expect(res.status).toBe(404);
@@ -208,13 +208,13 @@ describe("DELETE /api/projects/:id", () => {
   it("permite desfazer a exclusão com a cópia guardada", async () => {
     const { project, summary } = await createProject("Excluível e Recuperável", "entrega-software");
 
-    const removed = await app.fetch(
+    const removed = await fetch(
       new Request(`http://localhost/api/projects/${project.id}`, { method: "DELETE" }),
     );
     expect(removed.status).toBe(204);
 
     const restored = await json(
-      await app.fetch(
+      await fetch(
         new Request(`http://localhost/api/projects/${project.id}/restore`, { method: "POST" }),
       ),
     );
@@ -223,7 +223,7 @@ describe("DELETE /api/projects/:id", () => {
     expect(restored.summary.task_count).toBe(summary.task_count);
 
     // sem cópia pendente, o segundo desfazer não encontra nada
-    const again = await app.fetch(
+    const again = await fetch(
       new Request(`http://localhost/api/projects/${project.id}/restore`, { method: "POST" }),
     );
     expect(again.status).toBe(404);

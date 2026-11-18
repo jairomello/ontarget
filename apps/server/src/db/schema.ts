@@ -27,6 +27,7 @@ import type { DurationUnit, SchedulingMode, TaskType } from "@ontarget/shared";
 
 const ts = (name: string) => integer(name, { mode: "number" }).notNull();
 const optTs = (name: string) => integer(name, { mode: "number" });
+const optText = (name: string) => text(name);
 const bool = (name: string, fallback = false) =>
   integer(name, { mode: "boolean" }).notNull().default(fallback);
 
@@ -385,6 +386,79 @@ export const importTemplates = sqliteTable("import_templates", {
   sample: text("sample"),
 });
 
+/* -------------------------------------------------------------------------- */
+/* Identidade: contas locais, sessões e chaves de agente (MCP)                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Conta local (specs/user-auth). `email` já chega normalizado (trim +
+ * minúsculas) e o índice único é a guarda contra duplicidade. Preferências de
+ * aparência ficam na conta: a verdade está no servidor, o `localStorage` é
+ * apenas cache de boot.
+ */
+export const users = sqliteTable(
+  "users",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    passwordHash: text("password_hash").notNull(),
+    /** Caminho relativo do arquivo em `data/uploads/avatars/`, quando houver foto. */
+    avatarPath: optText("avatar_path"),
+    theme: text("theme").notNull().default("auto"),
+    density: text("density").notNull().default("comfortable"),
+    palette: text("palette").notNull().default("indigo"),
+    createdAt: ts("created_at"),
+    updatedAt: ts("updated_at"),
+  },
+  (t) => [uniqueIndex("ux_users_email").on(t.email)],
+);
+
+/**
+ * Sessão opaca: o cookie carrega o token em claro, o banco guarda só o hash.
+ * Revogação é uma linha no banco (specs/user-auth — "Sessão por cookie").
+ */
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    tokenHash: text("token_hash").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: ts("created_at"),
+    expiresAt: ts("expires_at"),
+    lastSeenAt: ts("last_seen_at"),
+  },
+  (t) => [
+    uniqueIndex("ux_sessions_token_hash").on(t.tokenHash),
+    index("ix_sessions_user").on(t.userId),
+  ],
+);
+
+/**
+ * Chave de API para agentes (specs/api-keys). Só o SHA-256 é gravado; o valor
+ * completo existe apenas na resposta de criação.
+ */
+export const apiKeys = sqliteTable(
+  "api_keys",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    keyHash: text("key_hash").notNull(),
+    createdAt: ts("created_at"),
+    lastUsedAt: optTs("last_used_at"),
+    revokedAt: optTs("revoked_at"),
+  },
+  (t) => [
+    uniqueIndex("ux_api_keys_key_hash").on(t.keyHash),
+    index("ix_api_keys_user").on(t.userId),
+  ],
+);
+
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
@@ -400,3 +474,6 @@ export type LibraryItem = typeof libraryItems.$inferSelect;
 export type CustomField = typeof customFields.$inferSelect;
 export type CustomFieldValue = typeof customFieldValues.$inferSelect;
 export type ChangeLogEntry = typeof changeLog.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Session = typeof sessions.$inferSelect;
+export type ApiKeyRow = typeof apiKeys.$inferSelect;

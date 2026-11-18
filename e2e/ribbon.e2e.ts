@@ -174,9 +174,15 @@ test("ribbon: abas funcionais e ordenação por botão, tecla e arraste", async 
   await page.getByTestId("ribbon-tab-formatar").click();
   await expect(page.getByTestId("ribbon-theme-dark")).toBeVisible();
   await page.getByTestId("ribbon-theme-dark").click();
+  await page.getByTestId("profile-menu").click();
   await expect(page.getByTestId("theme-select")).toHaveValue("dark");
+  await page.keyboard.press("Escape");
+
+  // Clicar fora fecha o menu, então reabre para ler a densidade.
   await page.getByTestId("ribbon-density-compact").click();
+  await page.getByTestId("profile-menu").click();
   await expect(page.getByTestId("density-select")).toHaveValue("compact");
+  await page.keyboard.press("Escape");
 
   expect(errors).toEqual([]);
 });

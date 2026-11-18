@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useMatch, useNavigate, Outlet } from "react-router";
 import { useHotkeys } from "../commands";
+import { ProfileMenu } from "../features/auth/ProfileMenu";
 import { CalendarPanel } from "../features/calendars/CalendarPanel";
 import { ResourcesPanel } from "../features/resources/ResourcesPanel";
 import { TeamPanel } from "../features/team/TeamPanel";
@@ -34,7 +35,6 @@ import { useUiStore, type PanelsState, type ViewKind } from "../store/uiStore";
 import { ShortcutsOverlay } from "../ui/ShortcutsOverlay";
 import { ZoomControls } from "../ui/ZoomControls";
 import { useAppearance } from "../ui/useAppearance";
-import { DENSITIES, THEMES } from "../ui/theme";
 import styles from "./Shell.module.css";
 
 /** Abas da ribbon da barra de comandos (docs/Design.md §3). */
@@ -366,33 +366,7 @@ export function Shell() {
             ↷
           </button>
 
-          <label className={styles.selectLabel}>
-            <span>Tema</span>
-            <select
-              data-testid="theme-select"
-              value={appearance.theme}
-              onChange={(e) => setTheme(e.target.value as (typeof THEMES)[number])}
-            >
-              {THEMES.map((theme) => (
-                <option key={theme} value={theme}>
-                  {theme === "auto" ? "Automático" : theme === "dark" ? "Escuro" : "Claro"}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={styles.selectLabel}>
-            <span>Densidade</span>
-            <select
-              data-testid="density-select"
-              value={appearance.density}
-              onChange={(e) => setDensity(e.target.value as (typeof DENSITIES)[number])}
-            >
-              <option value="compact">Compacta</option>
-              <option value="comfortable">Confortável</option>
-              <option value="wide">Ampla</option>
-            </select>
-          </label>
+          <ProfileMenu />
         </div>
       </header>
 

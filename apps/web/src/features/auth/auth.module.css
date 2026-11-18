@@ -1,0 +1,103 @@
+/* Tela de entrada: login e primeiro acesso (specs/user-auth). */
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-5);
+  background: var(--bg-canvas);
+}
+
+.card {
+  width: min(420px, 100%);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  padding: var(--sp-6);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 600;
+  color: var(--fg-default);
+}
+
+.brandMark {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.title {
+  margin: var(--sp-4) 0 var(--sp-1);
+  font-size: var(--text-xl);
+  color: var(--fg-default);
+}
+
+.hint {
+  margin: 0 0 var(--sp-5);
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--fg-default);
+}
+
+.input {
+  height: var(--control-height);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-2);
+  color: var(--fg-default);
+  font: inherit;
+  font-weight: 400;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.error {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--danger);
+}
+
+.submit {
+  height: var(--control-height);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.loading {
+  margin: var(--sp-6);
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+}

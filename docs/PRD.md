@@ -11,7 +11,7 @@ Produto de gerenciamento de projetos para a web, inspirado no **Microsoft Projec
 
 ## 1. Visão geral
 
-O **ontarget** é uma aplicação web single-user, executada localmente (runtime Bun + SQLite), que reproduz a experiência de planejamento de projetos do MS Project 2010 — em especial o **Gantt Chart**, o **Task Sheet** e o agendamento controlado pelo usuário — mas com interface atual, sistema de design próprio e renderização de gráficos de alta qualidade.
+O **ontarget** é uma aplicação web executada localmente (runtime Bun + SQLite), com **contas locais** (primeiro acesso cria a conta; depois é só login por e-mail e senha), que reproduz a experiência de planejamento de projetos do MS Project 2010 — em especial o **Gantt Chart**, o **Task Sheet** e o agendamento controlado pelo usuário — mas com interface atual, sistema de design próprio e renderização de gráficos de alta qualidade.
 
 O usuário mantém o domínio mental do MS Project (estrutura WBS, dependências, calendários, baselines, tracking), enquanto a aplicação elimina fricções antigas: nada de barras de ferramentas datadas, dialogs modais em excesso, ou exportações quebradas.
 
@@ -19,7 +19,7 @@ O usuário mantém o domínio mental do MS Project (estrutura WBS, dependências
 
 | Tema | Decisão |
 | --- | --- |
-| Autenticação | **Sem login**. App local, single-user. |
+| Autenticação | **Conta local**: o primeiro acesso cria a conta e a partir daí é login por e-mail e senha. Os projetos continuam compartilhados por instalação (sem dono por projeto). |
 | Projetos | **Múltiplos projetos + portfólio** (tela inicial listando todos, com resumo e progresso). |
 | Colaboração | Assíncrona via atribuição a recursos pré-cadastrados em equipes. **Sem** tempo real. |
 | Stack | JavaScript/TypeScript + React + CSS + Bun + SQLite. |
@@ -166,7 +166,7 @@ Códigos `2.x`, `5.x`, `6.x`, `7.x`, `9.x` referenciam a lista original do MS Pr
 | RF-P01 | P0 | Portfólio: listar projetos com nome, datas, % geral, nº de tarefas, atualização; abrir, duplicar, arquivar, excluir. |
 | RF-P02 | P0 | Persistência local em SQLite via Bun; sem perda de dados entre sessões (autosave). |
 | RF-P03 | P0 | Undo/redo global (≥ 100 passos) para edições de estrutura, datas, dependências e atribuições. |
-| RF-P04 | P0 | Tema claro/escuro + densidade de linhas (compacta/confortável) persistidos. |
+| RF-P04 | P0 | Tema claro/escuro, densidade de linhas (compacta/confortável) e paleta de cor, aplicados na hora e persistidos **na conta** (valem em qualquer navegador). |
 | RF-P05 | P1 | Biblioteca global (Global.MPT): visões, filtros, calendários, grupos e códigos reutilizáveis entre projetos. |
 | RF-P06 | P0 | Atalhos de teclado completos, sem conflito com a digitação em células, e documentados em overlay (`?`). O app deve ser plenamente operável sem mouse. |
 

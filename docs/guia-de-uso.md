@@ -7,6 +7,24 @@ MS Project 2010 (Bun + SQLite + React). Documentos de referência:
 - [importacao.md](importacao.md) — importação/exportação de dados
 - `PRD.md`, `Design.md`, `architecture.md` — requisitos, design e arquitetura
 
+## Acesso e conta
+
+- **Primeiro acesso**: com o banco sem nenhuma conta, o app abre a tela
+  **Criar a primeira conta** (e-mail, nome e senha — mínimo de 10 caracteres).
+  Depois disso a tela é de **Entrar**.
+- **Menu de perfil** (canto direito da barra): mostra foto (ou iniciais),
+  nome e e-mail, e leva a **Conta e preferências** e **Chaves de API (MCP)**;
+  `Esc` fecha e as setas percorrem as ações. O mesmo menu tem troca rápida de
+  tema, densidade e paleta.
+- **Conta** (`/conta`): troca a foto (com recorte antes do envio), o nome de
+  exibição, a senha (a atual é exigida e as outras sessões são encerradas),
+  a aparência e as chaves. E-mail é somente leitura.
+- **Redefinir a senha sem e-mail**: pare o app e rode
+  `bun run auth:reset` (lista as contas) e `bun run auth:reset <e-mail>` para
+  gerar uma nova senha — o valor é impresso uma única vez.
+- **Chaves de API (MCP)**: crie com um nome, copie o valor (`ont_…`) na hora —
+  ele não é exibido de novo — e revogue quando não precisar mais.
+
 ## Portfólio
 
 Na tela inicial você cria (Vazio, Entrega de software, Planejamento de obras,
@@ -96,6 +114,6 @@ legenda. **Imprimir / Gerar PDF** usa o diálogo do navegador.
 
 - Operação completa por teclado (grade incluída); `?` abre a tabela de
   atalhos do escopo atual.
-- Tema claro/escuro/automático e densidade de linhas na barra de aplicação.
+- Tema claro/escuro/automático, densidade de linhas e paleta de cor no menu de perfil (e na página de conta), salvos na conta.
 - Contraste WCAG AA, foco visível, `prefers-reduced-motion` e
   `prefers-contrast` respeitados.

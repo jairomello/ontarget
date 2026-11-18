@@ -1,7 +1,7 @@
 import { EMPTY_FILTER, type FilterSpec, type SortSpec } from "@ontarget/core";
 import { create } from "zustand";
 import { COLUMN_DEFS, TRACKING_ONLY_COLUMNS, defaultColumnState, isCustomColumnKey } from "../features/tasksheet/columns";
-import type { DensityName, ThemeName } from "../ui/theme";
+import type { DensityName, PaletteName, ThemeName } from "../ui/theme";
 import type { Id } from "./types";
 
 /**
@@ -91,6 +91,8 @@ export interface UiState {
   zoom: ZoomState;
   theme: ThemeName;
   density: DensityName;
+  /** Paleta de cor aplicada ao documento (specs/ui-shell). */
+  palette: PaletteName;
   panels: PanelsState;
   /** Estado do indicador de salvamento (specs/ui-shell). */
   saveState: SaveState;
@@ -125,6 +127,7 @@ export interface UiState {
   setZoom: (zoom: Partial<ZoomState>) => void;
   setTheme: (theme: ThemeName) => void;
   setDensity: (density: DensityName) => void;
+  setPalette: (palette: PaletteName) => void;
   setPanel: <K extends keyof PanelsState>(key: K, value: PanelsState[K]) => void;
   /** Largura da coluna da grade no divisor Grade↔Gantt (0 = automática). */
   sheetWidth: number;
@@ -272,6 +275,7 @@ export const useUiStore = create<UiState>()((set) => ({
   zoom: { pxPerDay: 26, forcedUnit: null, preset: null },
   theme: "auto",
   density: "comfortable",
+  palette: "indigo",
   saveState: "idle",
   sheetWidth: initialLayout.sheetWidth ?? 0,
   panels: {
@@ -414,6 +418,8 @@ export const useUiStore = create<UiState>()((set) => ({
   setTheme: (theme) => set({ theme }),
 
   setDensity: (density) => set({ density }),
+
+  setPalette: (palette) => set({ palette }),
 
   setPanel: (key, value) =>
     set((state) => {

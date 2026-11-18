@@ -94,11 +94,18 @@ test("suíte visual do Gantt: presets × temas × densidades", async ({ page, re
   await page.getByTestId("timeline-toggle").click();
   await expect(page.getByTestId("timeline")).toHaveCount(0);
 
-  for (const theme of THEMES) {
+  /** Troca a aparência pelo menu de perfil e o fecha (nada de menu na captura). */
+  const setAppearance = async (theme: string, density: string) => {
+    await page.getByTestId("profile-menu").click();
     await page.getByTestId("theme-select").selectOption(theme);
+    await page.getByTestId("density-select").selectOption(density);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("profile-menu-panel")).toHaveCount(0);
+  };
 
+  for (const theme of THEMES) {
     for (const density of DENSITIES) {
-      await page.getByTestId("density-select").selectOption(density);
+      await setAppearance(theme, density);
 
       for (const preset of PRESETS) {
         await page.getByTestId("zoom-preset").selectOption(preset);

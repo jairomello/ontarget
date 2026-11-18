@@ -12,6 +12,8 @@ export default defineConfig({
   testDir: "./e2e",
   // Apenas `*.e2e.ts`: arquivos `*.spec.ts` seriam capturados pelo `bun test`.
   testMatch: "**/*.e2e.ts",
+  // Cria a conta inicial e grava a sessão em `e2e/.auth/user.json`.
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,
@@ -23,6 +25,8 @@ export default defineConfig({
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
     permissions: ["clipboard-read", "clipboard-write"],
+    // Sessão do E2E: vale para `page` e para o fixture `request`.
+    storageState: "e2e/.auth/user.json",
   },
   webServer: {
     command: "bun run e2e:server",

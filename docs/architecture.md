@@ -36,6 +36,13 @@ Complementa `docs/PRD.md` e `docs/Design.md`.
 
 **Regras de dependência (em uma frase):** `core` não importa nada de `server`/`client`; `server` não importa `client`; `client` importa `core` e `shared`. Violação disso é bug de arquitetura.
 
+**Autenticação:** toda rota `/api/*` exceto `/api/health` e `/api/auth/*` passa por
+um middleware de sessão (cookie `ontarget_session`, `httpOnly`, `SameSite=Lax`);
+sem sessão válida a resposta é `401 { error: { code: "unauthorized" } }`. O
+primeiro acesso (`POST /api/auth/setup`) só existe enquanto não há nenhuma
+conta. Preferências de aparência e a foto vivem na conta; os projetos seguem
+globais à instalação.
+
 ---
 
 ## 2. Stack e justificativa
@@ -142,6 +149,25 @@ ontarget/
 ### 4.2 Esquema
 
 ```sql
+-- Identidade (contas locais, sessões e chaves de agente)
+users(
+  id TEXT PK, email TEXT UNIQUE,     -- normalizado em minúsculas
+  name TEXT, password_hash TEXT,     -- Argon2id (Bun.password)
+  avatar_path TEXT NULL,             -- arquivo em data/uploads/avatars/
+  theme TEXT DEFAULT 'auto', density TEXT DEFAULT 'comfortable',
+  palette TEXT DEFAULT 'indigo',
+  created_at INTEGER, updated_at INTEGER);
+
+sessions(
+  id TEXT PK, token_hash TEXT UNIQUE,   -- SHA-256 do token do cookie
+  user_id TEXT FK→users ON DELETE CASCADE,
+  created_at INTEGER, expires_at INTEGER, last_seen_at INTEGER);
+
+api_keys(
+  id TEXT PK, user_id TEXT FK→users ON DELETE CASCADE,
+  name TEXT, key_hash TEXT UNIQUE,      -- SHA-256; valor `ont_…` só na criação
+  created_at INTEGER, last_used_at INTEGER NULL, revoked_at INTEGER NULL);
+
 -- Portfólio
 projects(
   id TEXT PK, name TEXT, code TEXT, color TEXT,
@@ -293,8 +319,13 @@ CREATE INDEX ix_log_project_time    ON change_log(project_id, changed_at);
 | POST | `/api/import/commit` | aplica o lote validado (transação) |
 | GET | `/api/library?kind=…` · POST/PATCH/DELETE `/api/library/:id` | biblioteca global |
 | GET | `/api/templates` · `/api/templates/import` | templates de projeto/importação |
+| GET | `/api/auth/state` · POST `/api/auth/setup` | primeiro acesso (público; `409` depois da primeira conta) |
+| POST | `/api/auth/login` · `/api/auth/logout` · GET `/api/auth/me` | entrada, saída e consulta da sessão |
+| PATCH | `/api/users/me` · `/api/users/me/password` | nome, preferências de aparência e troca de senha |
+| PUT/GET/DELETE | `/api/users/me/avatar` | foto de perfil (multipart no upload) |
+| GET/POST | `/api/api-keys` · DELETE `/api/api-keys/:id` | chaves de agente (MCP): listar, gerar, revogar |
 
-**Convenções:** JSON puro, erros `{ error: { code, message, details? } }`, tudo em transação única, `If-Match` opcional com `updated_at` para detectar conflito (single-user → apenas aviso).
+**Convenções:** JSON puro (o upload de foto é a única exceção, multipart), erros `{ error: { code, message, details? } }`, tudo em transação única, `If-Match` opcional com `updated_at` para detectar conflito (projeto compartilhado pela instalação → apenas aviso). As rotas `/api/*` exigem sessão, exceto saúde e autenticação.
 
 ---
 
@@ -690,6 +721,9 @@ Drizzle transaction → SQLite → dirty.clear()
 - Limites de entrada: nome ≤ 500 chars, notas ≤ 50 KB, importação ≤ 50k linhas (com aviso).
 - Export: escaping CSV/JSON correto (nada de `</script>` injetável em JSON embutido).
 - Tratamento de erro global: boundary React + toast + log em `console` + endpoint `/api/health`.
+- **Contas locais**: senha com hash Argon2id (`Bun.password`), mínimo de 10 caracteres e comparação com a senha atual na troca; tentativas de login limitadas em memória (15 min).
+- **Sessão**: token aleatório de 32 bytes guardado só como SHA-256; cookie `httpOnly`/`SameSite=Lax`, validade de 30 dias com renovação deslizante (1 dia) e revogação imediata (logout e troca de senha).
+- **Chaves de API**: valor `ont_…` exibido uma única vez, guardado como SHA-256, revogável; a verificação é feita por uma função única (compartilhada com o futuro servidor MCP).
 
 ---
 

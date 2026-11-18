@@ -6,6 +6,8 @@ test-results/
 playwright-report/
 data/*.db
 data/*.db-*
+data/uploads/
+e2e/.auth/
 
 # ambiente
 .env

@@ -1,8 +1,8 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
-import { createApp } from "../src/app";
 import { createDb, type Db } from "../src/db/index";
+import { createAuthedApp } from "./helpers/auth";
 
 const TEST_ROOT = "/tmp/opencode/ontarget-tests";
 mkdirSync(TEST_ROOT, { recursive: true });
@@ -10,7 +10,7 @@ mkdirSync(TEST_ROOT, { recursive: true });
 const dir = mkdtempSync(path.join(TEST_ROOT, "import-"));
 const dbPath = path.join(dir, "import.db");
 const db: Db = createDb(dbPath);
-const app = createApp({ db });
+const { fetch } = await createAuthedApp(db);
 
 afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
@@ -19,7 +19,7 @@ afterAll(() => {
 const now = Date.now();
 
 async function post(url: string, body: unknown, method = "POST") {
-  const res = await app.fetch(
+  const res = await fetch(
     new Request(url, {
       method,
       headers: { "content-type": "application/json" },
@@ -31,7 +31,7 @@ async function post(url: string, body: unknown, method = "POST") {
 
 /** GET sem corpo (o Request do happy-dom rejeita corpo em GET). */
 async function get(url: string) {
-  const res = await app.fetch(new Request(url));
+  const res = await fetch(new Request(url));
   return { status: res.status, body: (await res.json().catch(() => null)) as any };
 }
 

@@ -2,9 +2,9 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { eq } from "drizzle-orm";
 import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
-import { createApp } from "../src/app";
 import { createDb, type Db } from "../src/db/index";
 import * as schema from "../src/db/schema";
+import { createAuthedApp } from "./helpers/auth";
 
 const TEST_ROOT = "/tmp/opencode/ontarget-tests";
 mkdirSync(TEST_ROOT, { recursive: true });
@@ -12,7 +12,7 @@ mkdirSync(TEST_ROOT, { recursive: true });
 const dir = mkdtempSync(path.join(TEST_ROOT, "sync-"));
 const dbPath = path.join(dir, "sync.db");
 const db: Db = createDb(dbPath);
-const app = createApp({ db });
+const { fetch } = await createAuthedApp(db);
 
 afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
@@ -34,7 +34,7 @@ function taskRow(id: string, projectId: string, name: string, sortOrder: number)
 }
 
 async function post(url: string, body: unknown, method = "POST") {
-  const res = await app.fetch(
+  const res = await fetch(
     new Request(url, {
       method,
       headers: { "content-type": "application/json" },
@@ -226,7 +226,7 @@ describe("POST /api/projects/:id/sync", () => {
     const projectId = await createProject("Sync Atômico");
     const url = `http://localhost/api/projects/${projectId}/sync`;
 
-    const res = await app.fetch(
+    const res = await fetch(
       new Request(url, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -248,7 +248,7 @@ describe("POST /api/projects/:id/sync", () => {
 
 describe("biblioteca global (library_items)", () => {
   async function get(url: string) {
-    const res = await app.fetch(new Request(url));
+    const res = await fetch(new Request(url));
     return { status: res.status, body: (await res.json().catch(() => null)) as any };
   }
 

@@ -15,8 +15,9 @@
     "test": "bun test",
     "test:coverage": "bun test packages/core --coverage",
     "test:e2e": "playwright test",
+    "auth:reset": "bun scripts/reset-password.ts",
     "docs:shortcuts": "bun scripts/generate-shortcuts-doc.ts",
-    "e2e:server": "bun run build && bun apps/server/src/index.ts",
+    "e2e:server": "bun run build && bun scripts/e2e-reset.ts && bun apps/server/src/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p apps/web/tsconfig.json --noEmit"
   },
   "devDependencies": {

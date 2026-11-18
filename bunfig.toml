@@ -1,2 +1,9 @@
+[test]
+# Registra o happy-dom antes de qualquer import de teste: o React-dom calcula
+# `canUseDOM`/`isInputEventSupported` no carregamento do módulo, e sem o DOM
+# ele liga o caminho polyfill do `onChange` (keyup/focusin) — nenhum
+# `input`/`change` atualizaria o estado nos testes de componente.
+preload = ["./apps/web/tests/helpers/dom.ts"]
+
 [install]
 saveTextLockfile = false
