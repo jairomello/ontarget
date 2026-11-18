@@ -1,0 +1,25 @@
+{
+  "name": "e-project",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun --cwd apps/server dev",
+    "dev:web": "bun --cwd apps/web dev",
+    "build": "bun --cwd apps/web build",
+    "start": "bun --cwd apps/server start",
+    "test": "bun test",
+    "test:e2e": "playwright test",
+    "e2e:server": "bun run build && bun apps/server/src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p apps/web/tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/bun": "latest",
+    "typescript": "^5.9.2"
+  }
+}
