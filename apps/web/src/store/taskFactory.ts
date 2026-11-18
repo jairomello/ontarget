@@ -1,0 +1,53 @@
+import { newId } from "@ontarget/shared";
+import type { Task } from "./types";
+
+/** Cria uma tarefa com os padrões do projeto (usada por UI e importação). */
+export function createTask(projectId: string, patch: Partial<Task>): Task {
+  const now = Date.now();
+  return {
+    id: newId(),
+    projectId,
+    parentId: null,
+    outlineLevel: 0,
+    outlineNumber: "",
+    sortOrder: 0,
+    name: "Nova tarefa",
+    notes: null,
+    isSummary: false,
+    isMilestone: false,
+    isInactive: false,
+    schedulingMode: "auto",
+    isPlaceholder: false,
+    taskType: "fixed_duration",
+    effortDriven: true,
+    constraintType: null,
+    constraintDate: null,
+    deadline: null,
+    manualStart: null,
+    manualFinish: null,
+    manualDuration: null,
+    start: null,
+    finish: null,
+    duration: null,
+    durationUnit: "day",
+    work: null,
+    cost: null,
+    fixedCost: null,
+    actualStart: null,
+    actualFinish: null,
+    actualDuration: null,
+    actualWork: null,
+    actualCost: null,
+    percentComplete: 0,
+    physicalPercent: null,
+    durationEstimated: true,
+    priority: 500,
+    calendarId: null,
+    wbsCode: null,
+    recurrence: null,
+    segments: null,
+    createdAt: now,
+    updatedAt: now,
+    ...patch,
+  };
+}

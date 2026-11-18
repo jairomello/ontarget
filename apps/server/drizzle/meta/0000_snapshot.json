@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "86ac333a-14c3-4a6a-b32d-b315bf2b6183",
+  "id": "89e675da-a179-4398-bc78-e4ba9efd0869",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "assignments": {
@@ -296,8 +296,8 @@
           "autoincrement": false,
           "default": "'baseline'"
         },
-        "savedAt": {
-          "name": "savedAt",
+        "saved_at": {
+          "name": "saved_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -560,8 +560,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "changedAt": {
-          "name": "changedAt",
+        "changed_at": {
+          "name": "changed_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -573,7 +573,7 @@
           "name": "ix_log_project_time",
           "columns": [
             "project_id",
-            "changedAt"
+            "changed_at"
           ],
           "isUnique": false
         }
@@ -614,8 +614,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "valueDate": {
-          "name": "valueDate",
+        "value_date": {
+          "name": "value_date",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -840,8 +840,8 @@
           "autoincrement": false,
           "default": "'{}'"
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -922,8 +922,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "statusDate": {
-          "name": "statusDate",
+        "status_date": {
+          "name": "status_date",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -989,15 +989,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -1196,8 +1196,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -1209,7 +1209,7 @@
           "name": "ix_snapshots_project",
           "columns": [
             "project_id",
-            "createdAt"
+            "created_at"
           ],
           "isUnique": false
         }
@@ -1443,8 +1443,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "constraintDate": {
-          "name": "constraintDate",
+        "constraint_date": {
+          "name": "constraint_date",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1457,15 +1457,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "manualStart": {
-          "name": "manualStart",
+        "manual_start": {
+          "name": "manual_start",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "manualFinish": {
-          "name": "manualFinish",
+        "manual_finish": {
+          "name": "manual_finish",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1528,15 +1528,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "actualStart": {
-          "name": "actualStart",
+        "actual_start": {
+          "name": "actual_start",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "actualFinish": {
-          "name": "actualFinish",
+        "actual_finish": {
+          "name": "actual_finish",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1622,15 +1622,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,

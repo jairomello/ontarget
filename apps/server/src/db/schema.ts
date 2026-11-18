@@ -1,8 +1,16 @@
-import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
-import type { DurationUnit, SchedulingMode, TaskType } from "@e-project/shared";
+import {
+  index,
+  integer,
+  primaryKey,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
+import type { DurationUnit, SchedulingMode, TaskType } from "@ontarget/shared";
 
 /**
- * Esquema do e-project — fonte: docs/architecture.md §4.
+ * Esquema do ontarget — fonte: docs/architecture.md §4.
  *
  * Convenções:
  *  - IDs TEXT (UUIDv7, gerados no client)
@@ -17,8 +25,8 @@ import type { DurationUnit, SchedulingMode, TaskType } from "@e-project/shared";
  * aplicação garante a consistência ao criar o projeto.
  */
 
-const ts = () => integer({ mode: "number" }).notNull();
-const optTs = () => integer({ mode: "number" });
+const ts = (name: string) => integer(name, { mode: "number" }).notNull();
+const optTs = (name: string) => integer(name, { mode: "number" });
 const bool = (name: string, fallback = false) =>
   integer(name, { mode: "boolean" }).notNull().default(fallback);
 
@@ -31,9 +39,11 @@ export const projects = sqliteTable("projects", {
   name: text("name").notNull(),
   code: text("code"),
   color: text("color").notNull().default("#4f46e5"),
-  start: optTs(),
-  finish: optTs(),
-  statusDate: optTs(),
+  start: optTs("start"),
+  finish: optTs("finish"),
+  statusDate: optTs("status_date"),
+  /** Data de status segue a data corrente, quando configurado. */
+  statusAuto: bool("status_auto", false),
   /** Referência lógica para o calendário padrão (ver nota no topo do arquivo). */
   calendarId: text("calendar_id"),
   defaultTaskType: text("default_task_type")
@@ -49,8 +59,8 @@ export const projects = sqliteTable("projects", {
   notes: text("notes"),
   archived: bool("archived"),
   templateKey: text("template_key"),
-  createdAt: ts(),
-  updatedAt: ts(),
+  createdAt: ts("created_at"),
+  updatedAt: ts("updated_at"),
 });
 
 export const libraryItems = sqliteTable(
@@ -62,7 +72,7 @@ export const libraryItems = sqliteTable(
     name: text("name").notNull(),
     projectId: text("project_id").references(() => projects.id, { onDelete: "cascade" }),
     config: text("config").notNull().default("{}"),
-    createdAt: ts(),
+    createdAt: ts("created_at"),
   },
   (t) => [index("ix_library_project").on(t.projectId)],
 );
@@ -79,7 +89,7 @@ export const calendars = sqliteTable(
     name: text("name").notNull(),
     isDefault: bool("is_default"),
     /** Bits seg..dom (bit 0 = segunda). */
-    weeklyMask: integer("weekly_mask").notNull().default(0b00111110),
+    weeklyMask: integer("weekly_mask").notNull().default(0b00011111),
     workingHoursStart: text("working_hours_start").notNull().default("09:00"),
     workingHoursEnd: text("working_hours_end").notNull().default("18:00"),
   },
@@ -93,7 +103,7 @@ export const calendarExceptions = sqliteTable(
     calendarId: text("calendar_id")
       .notNull()
       .references(() => calendars.id, { onDelete: "cascade" }),
-    date: optTs(),
+    date: optTs("date"),
     isWorking: bool("is_working"),
     name: text("name"),
     startTime: text("start_time"),
@@ -127,20 +137,20 @@ export const tasks = sqliteTable(
     taskType: text("task_type").$type<TaskType>().notNull().default("fixed_duration"),
     effortDriven: bool("effort_driven", true),
     constraintType: text("constraint_type"),
-    constraintDate: optTs(),
-    deadline: optTs(),
-    manualStart: optTs(),
-    manualFinish: optTs(),
+    constraintDate: optTs("constraint_date"),
+    deadline: optTs("deadline"),
+    manualStart: optTs("manual_start"),
+    manualFinish: optTs("manual_finish"),
     manualDuration: integer("manual_duration"),
-    start: optTs(),
-    finish: optTs(),
+    start: optTs("start"),
+    finish: optTs("finish"),
     duration: integer("duration"),
     durationUnit: text("duration_unit").$type<DurationUnit>().default("day"),
     work: integer("work"),
     cost: real("cost"),
     fixedCost: real("fixed_cost"),
-    actualStart: optTs(),
-    actualFinish: optTs(),
+    actualStart: optTs("actual_start"),
+    actualFinish: optTs("actual_finish"),
     actualDuration: integer("actual_duration"),
     actualWork: integer("actual_work"),
     actualCost: real("actual_cost"),
@@ -152,8 +162,8 @@ export const tasks = sqliteTable(
     wbsCode: text("wbs_code"),
     recurrence: text("recurrence"),
     segments: text("segments"),
-    createdAt: ts(),
-    updatedAt: ts(),
+    createdAt: ts("created_at"),
+    updatedAt: ts("updated_at"),
   },
   (t) => [
     uniqueIndex("ix_tasks_proj_order").on(t.projectId, t.sortOrder),
@@ -236,8 +246,8 @@ export const assignments = sqliteTable(
     cost: real("cost"),
     actualWork: integer("actual_work"),
     actualCost: real("actual_cost"),
-    start: optTs(),
-    finish: optTs(),
+    start: optTs("start"),
+    finish: optTs("finish"),
     proposed: bool("proposed"),
     notes: text("notes"),
   },
@@ -262,7 +272,7 @@ export const baselines = sqliteTable(
     name: text("name").notNull(),
     /** baseline | interim */
     kind: text("kind").notNull().default("baseline"),
-    savedAt: ts(),
+    savedAt: ts("saved_at"),
     /** project | selection */
     scope: text("scope").notNull().default("project"),
   },
@@ -278,13 +288,18 @@ export const baselineValues = sqliteTable(
     taskId: text("task_id")
       .notNull()
       .references(() => tasks.id, { onDelete: "cascade" }),
-    start: optTs(),
-    finish: optTs(),
+    start: optTs("start"),
+    finish: optTs("finish"),
     duration: integer("duration"),
     work: integer("work"),
     cost: real("cost"),
   },
-  (t) => [index("ix_baseline_values_task").on(t.taskId)],
+  // PK composta (docs/architecture.md §4): exige-se para o upsert idempotente
+  // do sync — sem ela, `ON CONFLICT (baseline_id, task_id)` é rejeitado.
+  (t) => [
+    primaryKey({ columns: [t.baselineId, t.taskId] }),
+    index("ix_baseline_values_task").on(t.taskId),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -321,9 +336,14 @@ export const customFieldValues = sqliteTable(
     entityId: text("entity_id").notNull(),
     valueText: text("value_text"),
     valueNum: real("value_num"),
-    valueDate: optTs(),
+    valueDate: optTs("value_date"),
   },
-  (t) => [index("ix_cf_values_entity").on(t.entityId)],
+  // PK composta (docs/architecture.md §4): exige-se para o upsert idempotente
+  // do sync — sem ela, `ON CONFLICT (field_id, entity_id)` é rejeitado.
+  (t) => [
+    primaryKey({ columns: [t.fieldId, t.entityId] }),
+    index("ix_cf_values_entity").on(t.entityId),
+  ],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -340,7 +360,7 @@ export const changeLog = sqliteTable(
     field: text("field").notNull(),
     oldValue: text("old_value"),
     newValue: text("new_value"),
-    changedAt: ts(),
+    changedAt: ts("changed_at"),
   },
   (t) => [index("ix_log_project_time").on(t.projectId, t.changedAt)],
 );
@@ -351,7 +371,7 @@ export const snapshots = sqliteTable(
     id: text("id").primaryKey(),
     projectId: text("project_id").notNull(),
     payload: text("payload").notNull(),
-    createdAt: ts(),
+    createdAt: ts("created_at"),
   },
   (t) => [index("ix_snapshots_project").on(t.projectId, t.createdAt)],
 );
@@ -370,10 +390,13 @@ export type NewProject = typeof projects.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
 export type TaskLink = typeof taskLinks.$inferSelect;
+export type Team = typeof teams.$inferSelect;
 export type Resource = typeof resources.$inferSelect;
 export type Assignment = typeof assignments.$inferSelect;
 export type Baseline = typeof baselines.$inferSelect;
+export type BaselineValue = typeof baselineValues.$inferSelect;
 export type Calendar = typeof calendars.$inferSelect;
 export type LibraryItem = typeof libraryItems.$inferSelect;
 export type CustomField = typeof customFields.$inferSelect;
+export type CustomFieldValue = typeof customFieldValues.$inferSelect;
 export type ChangeLogEntry = typeof changeLog.$inferSelect;

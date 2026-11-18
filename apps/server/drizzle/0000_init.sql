@@ -38,7 +38,7 @@ CREATE TABLE `baselines` (
 	`project_id` text NOT NULL,
 	`name` text NOT NULL,
 	`kind` text DEFAULT 'baseline' NOT NULL,
-	`savedAt` integer NOT NULL,
+	`saved_at` integer NOT NULL,
 	`scope` text DEFAULT 'project' NOT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade
 );
@@ -76,16 +76,16 @@ CREATE TABLE `change_log` (
 	`field` text NOT NULL,
 	`old_value` text,
 	`new_value` text,
-	`changedAt` integer NOT NULL
+	`changed_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `ix_log_project_time` ON `change_log` (`project_id`,`changedAt`);--> statement-breakpoint
+CREATE INDEX `ix_log_project_time` ON `change_log` (`project_id`,`changed_at`);--> statement-breakpoint
 CREATE TABLE `custom_field_values` (
 	`field_id` text NOT NULL,
 	`entity_id` text NOT NULL,
 	`value_text` text,
 	`value_num` real,
-	`valueDate` integer,
+	`value_date` integer,
 	FOREIGN KEY (`field_id`) REFERENCES `custom_fields`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -119,7 +119,7 @@ CREATE TABLE `library_items` (
 	`name` text NOT NULL,
 	`project_id` text,
 	`config` text DEFAULT '{}' NOT NULL,
-	`createdAt` integer NOT NULL,
+	`created_at` integer NOT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -131,7 +131,7 @@ CREATE TABLE `projects` (
 	`color` text DEFAULT '#4f46e5' NOT NULL,
 	`start` integer,
 	`finish` integer,
-	`statusDate` integer,
+	`status_date` integer,
 	`calendar_id` text,
 	`default_task_type` text DEFAULT 'fixed_duration' NOT NULL,
 	`default_scheduling_mode` text DEFAULT 'auto' NOT NULL,
@@ -140,8 +140,8 @@ CREATE TABLE `projects` (
 	`notes` text,
 	`archived` integer DEFAULT false NOT NULL,
 	`template_key` text,
-	`createdAt` integer NOT NULL,
-	`updatedAt` integer NOT NULL
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `resources` (
@@ -169,10 +169,10 @@ CREATE TABLE `snapshots` (
 	`id` text PRIMARY KEY NOT NULL,
 	`project_id` text NOT NULL,
 	`payload` text NOT NULL,
-	`createdAt` integer NOT NULL
+	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE INDEX `ix_snapshots_project` ON `snapshots` (`project_id`,`createdAt`);--> statement-breakpoint
+CREATE INDEX `ix_snapshots_project` ON `snapshots` (`project_id`,`created_at`);--> statement-breakpoint
 CREATE TABLE `task_links` (
 	`id` text PRIMARY KEY NOT NULL,
 	`project_id` text NOT NULL,
@@ -204,10 +204,10 @@ CREATE TABLE `tasks` (
 	`task_type` text DEFAULT 'fixed_duration' NOT NULL,
 	`effort_driven` integer DEFAULT true NOT NULL,
 	`constraint_type` text,
-	`constraintDate` integer,
+	`constraint_date` integer,
 	`deadline` integer,
-	`manualStart` integer,
-	`manualFinish` integer,
+	`manual_start` integer,
+	`manual_finish` integer,
 	`manual_duration` integer,
 	`start` integer,
 	`finish` integer,
@@ -216,8 +216,8 @@ CREATE TABLE `tasks` (
 	`work` integer,
 	`cost` real,
 	`fixed_cost` real,
-	`actualStart` integer,
-	`actualFinish` integer,
+	`actual_start` integer,
+	`actual_finish` integer,
 	`actual_duration` integer,
 	`actual_work` integer,
 	`actual_cost` real,
@@ -229,8 +229,8 @@ CREATE TABLE `tasks` (
 	`wbs_code` text,
 	`recurrence` text,
 	`segments` text,
-	`createdAt` integer NOT NULL,
-	`updatedAt` integer NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`calendar_id`) REFERENCES `calendars`(`id`) ON UPDATE no action ON DELETE set null
 );

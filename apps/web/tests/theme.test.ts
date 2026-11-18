@@ -1,8 +1,6 @@
-import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import "./helpers/dom";
 
-GlobalRegistrator.register();
-
-import { afterAll, afterEach, describe, expect, it } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -34,12 +32,6 @@ function setPrefersDark(value: boolean) {
 
 afterEach(() => {
   setPrefersDark(false);
-});
-
-// Devolve o ambiente ao Bun depois destes testes, para não afetar
-// testes de outros pacotes que rodam no mesmo processo.
-afterAll(() => {
-  GlobalRegistrator.unregister();
 });
 
 describe("applyAppearance", () => {

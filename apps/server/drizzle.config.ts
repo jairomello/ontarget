@@ -5,7 +5,7 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {
-    url: "../../data/e-project.db",
+    url: "../../data/ontarget.db",
   },
   strict: true,
   verbose: true,

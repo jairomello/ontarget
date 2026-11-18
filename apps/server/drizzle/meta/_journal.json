@@ -5,15 +5,36 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1794593935137,
+      "when": 1794595846018,
       "tag": "0000_init",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
-      "when": 1794593951654,
+      "when": 1794595846276,
       "tag": "0001_project_summary_view",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794680000000,
+      "tag": "0002_baseline_values_pk",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794690000000,
+      "tag": "0003_project_status_auto",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794700000000,
+      "tag": "0004_custom_field_values_pk",
       "breakpoints": true
     }
   ]

@@ -6,3 +6,13 @@ test-results/
 playwright-report/
 data/*.db
 data/*.db-*
+
+# ambiente
+.env
+.env.*
+!.env.example
+
+# rascunhos locais
+.playwright-mcp/
+.probe-clipboard.ts
+HANDOFF-apply.md

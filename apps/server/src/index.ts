@@ -9,4 +9,4 @@ Bun.serve({
   idleTimeout: 120,
 });
 
-console.log(`[e-project] servidor em http://localhost:${port}`);
+console.log(`[ontarget] servidor em http://localhost:${port}`);

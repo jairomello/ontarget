@@ -4,7 +4,7 @@ const PORT = 3123;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 /**
- * E2E do e-project.
+ * E2E do ontarget.
  * Sobe o servidor com o client já construído e um banco separado (data/e2e.db),
  * para não tocar no banco de desenvolvimento.
  */
@@ -22,6 +22,7 @@ export default defineConfig({
     trace: "retain-on-failure",
     locale: "pt-BR",
     timezoneId: "America/Sao_Paulo",
+    permissions: ["clipboard-read", "clipboard-write"],
   },
   webServer: {
     command: "bun run e2e:server",

@@ -1,5 +1,5 @@
 {
-  "name": "@e-project/server",
+  "name": "@ontarget/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,8 +12,8 @@
     "db:tables": "bun scripts/list-tables.ts"
   },
   "dependencies": {
-    "@e-project/core": "workspace:*",
-    "@e-project/shared": "workspace:*",
+    "@ontarget/core": "workspace:*",
+    "@ontarget/shared": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.11.11"
   },

@@ -12,7 +12,7 @@ export const MIGRATIONS_FOLDER = path.resolve(import.meta.dir, "../../drizzle");
 export type Db = BunSQLiteDatabase<typeof schema>;
 
 export function defaultDbPath(): string {
-  return process.env.DATABASE_PATH ?? path.join(REPO_ROOT, "data", "e-project.db");
+  return process.env.DATABASE_PATH ?? path.join(REPO_ROOT, "data", "ontarget.db");
 }
 
 /**

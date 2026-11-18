@@ -1,0 +1,230 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-6);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.panel {
+  width: min(720px, 100%);
+  max-height: min(85vh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 650;
+}
+
+.close {
+  height: 26px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--fg-muted);
+}
+
+.close:hover {
+  background: var(--bg-hover);
+}
+
+.body {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  overflow: auto;
+  align-content: start;
+}
+
+.modeRow,
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--text-sm);
+  color: var(--fg-muted);
+}
+
+.modeRow select {
+  height: 30px;
+  padding: 0 var(--sp-2);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--fg-default);
+  font-size: var(--text-sm);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--fg-muted);
+}
+
+.warning {
+  margin: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.error {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.success {
+  margin: 0;
+  padding: var(--sp-3);
+  border: 1px solid var(--success, #16a34a);
+  border-radius: var(--radius-sm);
+  color: var(--success, #16a34a);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.secondaryButton {
+  height: 30px;
+  padding: 0 var(--sp-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: var(--accent);
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.primaryButton:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--fg-muted);
+}
+
+.secondaryButton:hover {
+  background: var(--bg-hover);
+  color: var(--fg-default);
+}
+
+.mapping {
+  display: grid;
+  gap: var(--sp-2);
+  max-height: 300px;
+  overflow: auto;
+  padding: var(--sp-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.mappingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.mappingColumn {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--fg-default);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mappingSelect {
+  height: 28px;
+  padding: 0 var(--sp-2);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--fg-default);
+  font-size: var(--text-xs);
+}
+
+.counts {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.errorList {
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow: auto;
+  padding: var(--sp-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.errorRow {
+  display: flex;
+  gap: var(--sp-3);
+  padding: 2px var(--sp-2);
+  font-size: var(--text-xs);
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.errorLine {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--fg-muted);
+}
+
+.errorReason {
+  color: var(--danger);
+}

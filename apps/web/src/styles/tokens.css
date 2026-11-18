@@ -1,5 +1,5 @@
 /* ==========================================================================
-   e-project — design tokens
+   ontarget — design tokens
    Fonte: docs/Design.md §2. Temas claro/escuro e três densidades de linha.
    ========================================================================== */
 
@@ -34,6 +34,9 @@
   /* --- densidade: sobrescrita por [data-density] --- */
   --row-height: 28px;
   --control-height: 30px;
+  /* barra de ferramentas da grade (Task Sheet) — usada também para alinhar
+     o topo do painel do Gantt com o topo da grade */
+  --toolbar-height: 43px;
 
   /* --- movimento --- */
   --duration-fast: 120ms;
@@ -54,6 +57,9 @@
   --bg-surface-2: #f1f3f6;
   --bg-hover: rgba(15, 23, 42, 0.05);
   --bg-active: rgba(15, 23, 42, 0.09);
+  /* linhas de grupo/resumo: destaque que atravessa todas as colunas */
+  --bg-group: #e7ecf6;
+  --bg-group-strong: #dbe3f2;
 
   --fg-default: #0f172a;
   --fg-muted: #5b6577;
@@ -65,6 +71,17 @@
   --accent: #4f46e5;
   --accent-soft: rgba(79, 70, 229, 0.12);
   --accent-fg: #ffffff;
+
+  /* identidade: barra de aplicação e realces de marca */
+  --brand-bar: linear-gradient(115deg, #312e81 0%, #4f46e5 46%, #6d28d9 76%, #9333ea 100%);
+  --brand-bar-edge: rgba(255, 255, 255, 0.14);
+  --brand-shadow: 0 10px 26px -18px rgba(49, 46, 129, 0.95);
+  --brand-fg: #ffffff;
+  --brand-fg-dim: rgba(255, 255, 255, 0.74);
+  --brand-chip: rgba(255, 255, 255, 0.12);
+  --brand-chip-hover: rgba(255, 255, 255, 0.22);
+  --brand-chip-border: rgba(255, 255, 255, 0.2);
+  --brand-gradient: linear-gradient(120deg, #4f46e5, #7c3aed 55%, #db2777);
 
   --success: #16a34a;
   --success-soft: rgba(22, 163, 74, 0.14);
@@ -103,6 +120,8 @@
   --bg-surface-2: #171c27;
   --bg-hover: rgba(255, 255, 255, 0.05);
   --bg-active: rgba(255, 255, 255, 0.09);
+  --bg-group: #1a2130;
+  --bg-group-strong: #212a3d;
 
   --fg-default: #e6e9ef;
   --fg-muted: #98a2b4;
@@ -114,6 +133,16 @@
   --accent: #6366f1;
   --accent-soft: rgba(99, 102, 241, 0.18);
   --accent-fg: #ffffff;
+
+  --brand-bar: linear-gradient(115deg, #171442 0%, #3b34c4 45%, #5b21b6 78%, #7e22ce 100%);
+  --brand-bar-edge: rgba(255, 255, 255, 0.12);
+  --brand-shadow: 0 10px 26px -16px rgba(0, 0, 0, 0.9);
+  --brand-fg: #ffffff;
+  --brand-fg-dim: rgba(255, 255, 255, 0.72);
+  --brand-chip: rgba(255, 255, 255, 0.1);
+  --brand-chip-hover: rgba(255, 255, 255, 0.2);
+  --brand-chip-border: rgba(255, 255, 255, 0.18);
+  --brand-gradient: linear-gradient(120deg, #6366f1, #a855f7 55%, #ec4899);
 
   --success: #22c55e;
   --success-soft: rgba(34, 197, 94, 0.18);

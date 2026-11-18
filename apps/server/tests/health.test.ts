@@ -10,7 +10,7 @@ describe("GET /api/health", () => {
 
     const body = (await res.json()) as { status: string; name: string; version: string };
     expect(body.status).toBe("ok");
-    expect(body.name).toBe("e-project");
+    expect(body.name).toBe("ontarget");
     expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 

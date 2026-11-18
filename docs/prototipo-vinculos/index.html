@@ -1,0 +1,1028 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ontarget — protótipo de vínculos do Gantt</title>
+<style>
+  /* ============================================================
+     Tokens espelhados de apps/web/src/styles/tokens.css (tema claro)
+     ============================================================ */
+  :root {
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+    --radius-sm: 6px; --radius-md: 10px; --radius-pill: 999px;
+
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --text-xs: 11px; --text-sm: 12.5px; --text-md: 13.5px; --text-lg: 15px;
+
+    --row-height: 28px;
+
+    --bg-canvas: #f7f8fa;
+    --bg-surface: #ffffff;
+    --bg-surface-2: #f1f3f6;
+    --bg-hover: rgba(15, 23, 42, 0.05);
+    --fg-default: #0f172a;
+    --fg-muted: #5b6577;
+    --fg-subtle: #94a0b4;
+    --border-default: #e3e7ee;
+    --border-strong: #cdd4e0;
+
+    --accent: #4f46e5;
+    --accent-soft: rgba(79, 70, 229, 0.12);
+    --accent-fg: #ffffff;
+    --danger: #dc2626;
+    --danger-soft: rgba(220, 38, 38, 0.14);
+
+    --bg-group: #e7ecf6;
+    --bg-group-strong: #dbe3f2;
+
+    --nonworking: rgba(100, 116, 139, 0.14);
+    --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+
+    --bar-task: #6366f1;
+    --bar-task-progress: #4338ca;
+    --bar-critical: #ef4444;
+    --bar-summary: #334155;
+    --bar-milestone: #f59e0b;
+
+    --brand-bar: linear-gradient(115deg, #312e81 0%, #4f46e5 46%, #6d28d9 76%, #9333ea 100%);
+    --brand-bar-edge: rgba(255, 255, 255, 0.14);
+    --brand-fg: #ffffff;
+    --brand-fg-dim: rgba(255, 255, 255, 0.74);
+    --brand-chip: rgba(255, 255, 255, 0.12);
+    --brand-chip-border: rgba(255, 255, 255, 0.2);
+    --brand-gradient: linear-gradient(120deg, #4f46e5, #7c3aed 55%, #db2777);
+
+    /* linha de vínculo (refino deste protótipo) */
+    --link-stroke: #64748b;
+    --link-stroke-hover: #334155;
+    --link-width: 1.6;
+    --link-arrow: 8px;
+    --link-corner: 10px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    color: var(--fg-default);
+    background: var(--bg-canvas);
+    display: grid;
+    grid-template-rows: auto auto auto auto 1fr auto;
+    height: 100vh;
+    overflow: hidden;
+  }
+  button, select, input { font: inherit; }
+
+  /* ---------------------------------------------------- barra A */
+  .app-bar {
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--brand-bar);
+    border-bottom: 1px solid var(--brand-bar-edge);
+    box-shadow: 0 10px 26px -18px rgba(49, 46, 129, 0.95);
+    isolation: isolate;
+  }
+  .app-bar::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(120% 200% at 12% -60%, rgba(255,255,255,.3), transparent 58%),
+      radial-gradient(90% 180% at 88% -50%, rgba(255,255,255,.16), transparent 55%);
+  }
+  .brand-group { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--sp-3); }
+  .brand { display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--brand-fg); text-decoration: none; font-weight: 800; font-size: var(--text-lg); letter-spacing: -.02em; }
+  .brand-mark {
+    display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px;
+    background: var(--brand-chip); border: 1px solid var(--brand-chip-border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .brand-hint {
+    font-size: var(--text-xs); color: var(--brand-fg-dim);
+    padding: 2px var(--sp-3); background: var(--brand-chip);
+    border: 1px solid var(--brand-chip-border); border-radius: var(--radius-pill);
+  }
+  .app-actions { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--sp-2); }
+  .select-label {
+    display: flex; align-items: center; gap: var(--sp-2);
+    font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--brand-fg-dim);
+  }
+  .select-label select {
+    height: 28px; padding: 0 var(--sp-2); color: var(--brand-fg);
+    background: var(--brand-chip); border: 1px solid var(--brand-chip-border);
+    border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: 600;
+    text-transform: none; letter-spacing: normal; cursor: pointer;
+  }
+  .select-label select option { color: var(--fg-default); background: var(--bg-surface); }
+
+  /* ---------------------------------------------------- barra B */
+  .command-bar {
+    display: flex; flex-direction: column; padding: 0 var(--sp-3);
+    background: var(--bg-surface); border-bottom: 1px solid var(--border-default);
+    box-shadow: var(--shadow-1);
+  }
+  .tab-row { display: flex; align-items: center; gap: var(--sp-1); min-height: 40px; }
+  .tab {
+    position: relative; padding: var(--sp-2) var(--sp-4); font-size: var(--text-sm);
+    font-weight: 600; color: var(--fg-muted); background: none; border: 0;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0; cursor: pointer;
+  }
+  .tab.is-active { color: var(--accent); background: linear-gradient(to bottom, var(--accent-soft), transparent 78%); }
+  .tab.is-active::after {
+    content: ""; position: absolute; left: var(--sp-2); right: var(--sp-2); bottom: 0;
+    height: 3px; border-radius: 3px 3px 0 0; background: var(--brand-gradient);
+  }
+  .spacer { flex: 1; }
+  .ribbon-row {
+    display: flex; align-items: stretch; gap: var(--sp-3); padding: var(--sp-2) 0;
+    border-top: 1px solid var(--border-default);
+    background: linear-gradient(to bottom, var(--bg-surface-2), var(--bg-surface) 70%);
+    overflow-x: auto;
+  }
+  .ribbon-group {
+    display: flex; flex-direction: column; align-items: center; gap: var(--sp-1);
+    padding: var(--sp-1) var(--sp-2) 3px; background: var(--bg-surface);
+    border: 1px solid var(--border-default); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-1);
+  }
+  .group-title {
+    order: 2; font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--fg-subtle);
+  }
+  .group-buttons { display: flex; gap: var(--sp-1); }
+  .ribbon-btn {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 4px;
+    min-width: 60px; padding: var(--sp-1) var(--sp-2); background: transparent;
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    font-size: 10px; color: var(--fg-default); cursor: pointer;
+  }
+  .ribbon-btn:hover { background: var(--accent-soft); transform: translateY(-1px); }
+  .ribbon-btn .icon {
+    display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px;
+    background: var(--bg-surface-2); border: 1px solid var(--border-default); font-size: 14px;
+  }
+  .ribbon-btn:hover .icon { border-color: var(--accent); color: var(--accent); background: var(--bg-surface); }
+  .ribbon-btn.is-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .ribbon-btn.is-on .icon { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+
+  /* --------------------------------------------- barra timeline */
+  .timeline {
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--bg-surface); border-bottom: 1px solid var(--border-default);
+  }
+  .timeline .label {
+    font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--fg-subtle);
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: var(--sp-2);
+    height: 26px; padding: 0 var(--sp-3); border: 1px solid var(--border-default);
+    border-radius: var(--radius-pill); background: var(--bg-surface);
+    font-size: var(--text-xs); color: var(--fg-muted);
+  }
+  .pill strong { color: var(--fg-default); font-weight: 600; }
+
+  /* -------------------------------------------------- barra de filtros */
+  .filter-bar {
+    display: flex; align-items: center; gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--bg-surface); border-bottom: 1px solid var(--border-default);
+    font-size: var(--text-xs); color: var(--fg-muted);
+  }
+  .chip {
+    height: 24px; padding: 0 var(--sp-3); border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm); background: var(--bg-surface); font-size: var(--text-xs);
+    color: var(--fg-muted); cursor: pointer;
+  }
+  .chip:hover { background: var(--bg-hover); color: var(--fg-default); }
+  .count { color: var(--fg-subtle); font-variant-numeric: tabular-nums; }
+
+  /* ------------------------------------------------- área de trabalho */
+  .workspace { display: grid; grid-template-columns: 700px 1fr; min-height: 0; }
+  .grid-pane { overflow: auto; background: var(--bg-surface); border-right: 1px solid var(--border-default); }
+
+  table.sheet { border-collapse: separate; border-spacing: 0; width: max-content; font-size: var(--text-sm); }
+  table.sheet th {
+    position: sticky; top: 0; z-index: 3; height: 28px; padding: 0 var(--sp-2);
+    background: var(--bg-surface-2); border-bottom: 1px solid var(--border-default);
+    border-right: 1px solid var(--border-default);
+    font-size: var(--text-xs); font-weight: 600; color: var(--fg-muted); text-align: left;
+    white-space: nowrap;
+  }
+  table.sheet th.num, table.sheet td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.sheet td {
+    height: var(--row-height); padding: 0 var(--sp-2);
+    border-bottom: 1px solid var(--border-default); border-right: 1px solid transparent;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px;
+  }
+  table.sheet tr.group td { background: var(--bg-group); font-weight: 700; border-top: 1px solid var(--border-default); }
+  table.sheet tr.group:hover td { background: var(--bg-group-strong); }
+  table.sheet tr.task:hover td { background: var(--bg-hover); }
+  table.sheet td.mono { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-muted); }
+  table.sheet td.name { font-weight: 500; }
+  table.sheet tr.group td.name { font-weight: 700; }
+  table.sheet tr.task.critical td.name { color: var(--bar-critical); font-weight: 650; }
+  .indent { display: inline-block; }
+
+  /* ------------------------------------------------------- gantt */
+  .gantt-pane { position: relative; overflow: auto; background: var(--bg-surface); }
+  .gantt-inner { position: relative; }
+  svg.gantt { display: block; }
+
+  .band-label { font-size: 11px; fill: var(--fg-muted); font-weight: 600; }
+  .band-month { font-size: 11px; fill: var(--fg-subtle); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .grid-minor { stroke: var(--border-default); stroke-width: 1; opacity: .75; }
+  .grid-major { stroke: var(--border-strong); stroke-width: 1; }
+  .grid-row { stroke: var(--border-default); stroke-width: 1; }
+  .weekend { fill: var(--nonworking); }
+
+  .bar { cursor: default; }
+  .bar-task { fill: var(--bar-task); }
+  .bar-summary { fill: var(--bar-summary); }
+  .bar-critical { fill: var(--bar-critical); }
+  .bar-progress { fill: var(--bar-task-progress); }
+  .bar-milestone { fill: var(--bar-milestone); }
+  .bar-outline { fill: none; stroke: rgba(255,255,255,.35); stroke-width: 1; }
+
+  /* ------------------------------------------------- vínculos */
+  .link {
+    fill: none; stroke: var(--link-stroke); stroke-width: var(--link-width);
+    stroke-linecap: round; stroke-linejoin: round;
+    transition: stroke var(--duration, 120ms) linear, stroke-width 120ms linear;
+  }
+  .link.is-hot { stroke: var(--link-stroke-hover); stroke-width: 2.4; }
+  .link-hit { fill: none; stroke: transparent; stroke-width: 12; cursor: pointer; }
+  .link-arrow { fill: var(--link-stroke); }
+  .link.is-hot + .link-arrow { fill: var(--link-stroke-hover); }
+  .link-label {
+    font-size: 9px; font-weight: 700; fill: var(--fg-muted);
+    paint-order: stroke; stroke: var(--bg-surface); stroke-width: 2.5px;
+  }
+
+  /* pontos de conexão (só com o toggle ligado) */
+  .anchor { fill: var(--bg-surface); stroke: var(--accent); stroke-width: 1.4; opacity: .95; }
+  .anchor.is-source { fill: var(--accent); stroke: #fff; }
+  .anchor.is-used { fill: #16a34a; stroke: #fff; }
+
+  /* candidatos descartados (toggle) */
+  .candidate { fill: none; stroke: #94a0b4; stroke-width: 1; stroke-dasharray: 3 3; opacity: .55; }
+  .candidate.is-winner { stroke: #16a34a; opacity: .9; stroke-dasharray: none; stroke-width: 1.4; }
+
+  /* ------------------------------------------------- barra de status */
+  .status-bar {
+    display: flex; align-items: center; gap: var(--sp-3);
+    height: 28px; padding: 0 var(--sp-4); font-size: var(--text-xs); color: var(--fg-muted);
+    background: linear-gradient(to bottom, var(--bg-surface-2), var(--bg-surface));
+    border-top: 1px solid var(--border-default);
+  }
+  .status-btn {
+    height: 20px; padding: 0 var(--sp-3); border: 1px solid var(--border-default);
+    border-radius: var(--radius-pill); background: var(--bg-surface);
+    font-size: var(--text-xs); color: var(--fg-muted); cursor: pointer;
+  }
+  .status-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+  .status-btn.is-on::before {
+    content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px;
+    border-radius: 50%; background: #fff;
+  }
+
+  /* ------------------------------------------------- ajuda flutuante */
+  .hint {
+    position: fixed; right: 16px; bottom: 44px; z-index: 20; width: 330px;
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: var(--radius-md); box-shadow: 0 16px 40px -12px rgba(15,23,42,.22);
+    padding: var(--sp-3); font-size: var(--text-xs); color: var(--fg-muted);
+  }
+  .hint.is-hidden .hint-body { display: none; }
+  .hint h2 {
+    margin: 0; font-size: var(--text-sm); color: var(--fg-default);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2);
+  }
+  .hint h2 button {
+    border: 1px solid var(--border-default); background: var(--bg-surface-2);
+    border-radius: var(--radius-pill); font-size: 10px; color: var(--fg-muted);
+    padding: 1px 8px; cursor: pointer;
+  }
+  .hint ul { margin: 0; padding-left: 16px; line-height: 1.55; }
+  .hint kbd {
+    font-family: var(--font-mono); font-size: 10px; background: var(--bg-surface-2);
+    border: 1px solid var(--border-default); border-radius: 4px; padding: 0 4px;
+  }
+  .hint .stats { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-default); color: var(--fg-default); font-weight: 600; }
+  .hint .warn { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<header class="app-bar">
+  <div class="brand-group">
+    <a class="brand" href="#">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.8" opacity=".5"/>
+          <circle cx="12" cy="12" r="5.2" stroke="currentColor" stroke-width="1.8" opacity=".8"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+      </span>
+      ontarget
+    </a>
+    <span class="brand-hint">protótipo · vínculos do Gantt</span>
+  </div>
+  <div class="app-actions">
+    <label class="select-label">Política
+      <select id="policy">
+        <option value="curves" selected>menos curvas primeiro</option>
+        <option value="length">menos comprimento primeiro</option>
+        <option value="classic">clássico (esquerda/direita)</option>
+      </select>
+    </label>
+    <label class="select-label">Zoom
+      <select id="zoom">
+        <option value="14">14 px/dia</option>
+        <option value="26" selected>26 px/dia</option>
+        <option value="52">52 px/dia</option>
+        <option value="120">120 px/dia</option>
+      </select>
+    </label>
+  </div>
+</header>
+
+<nav class="command-bar">
+  <div class="tab-row">
+    <button class="tab is-active" type="button">Tarefa</button>
+    <button class="tab" type="button">Recurso</button>
+    <button class="tab" type="button">Projeto</button>
+    <button class="tab" type="button">Ver</button>
+    <button class="tab" type="button">Formatar</button>
+    <span class="spacer"></span>
+    <span class="select-label" style="color: var(--fg-subtle)">Visão
+      <select style="background: var(--bg-surface-2); border-color: var(--border-default); color: var(--fg-default)">
+        <option>Gantt</option>
+      </select>
+    </span>
+  </div>
+  <div class="ribbon-row">
+    <div class="ribbon-group">
+      <div class="group-buttons">
+        <button class="ribbon-btn" type="button"><span class="icon">↑</span>Mover p/ cima</button>
+        <button class="ribbon-btn" type="button"><span class="icon">↓</span>Mover p/ baixo</button>
+        <button class="ribbon-btn" type="button"><span class="icon">←</span>Outdentar</button>
+        <button class="ribbon-btn" type="button"><span class="icon">→</span>Indentar</button>
+      </div>
+      <span class="group-title">Estrutura</span>
+    </div>
+    <div class="ribbon-group">
+      <div class="group-buttons">
+        <button class="ribbon-btn" type="button"><span class="icon">＋</span>Inserir</button>
+        <button class="ribbon-btn" type="button"><span class="icon">⊕</span>Inserir subtarefa</button>
+        <button class="ribbon-btn" type="button"><span class="icon">✕</span>Apagar</button>
+      </div>
+      <span class="group-title">Tarefa</span>
+    </div>
+    <div class="ribbon-group">
+      <div class="group-buttons">
+        <button class="ribbon-btn is-on" type="button" id="tg-anchors"><span class="icon">⚓</span>Pontos de conexão</button>
+        <button class="ribbon-btn" type="button" id="tg-candidates"><span class="icon">⌗</span>Candidatos</button>
+        <button class="ribbon-btn" type="button" id="tg-labels"><span class="icon">Σ</span>Nº de curvas</button>
+      </div>
+      <span class="group-title">Depuração</span>
+    </div>
+  </div>
+</nav>
+
+<div class="timeline">
+  <span class="label">Timeline</span>
+  <span class="pill">Adicionar tarefa…</span>
+  <span class="pill"><strong>Sincronizar com o Gantt</strong></span>
+  <span class="pill" id="range">05/01/2026 – 16/03/2026</span>
+  <span class="spacer"></span>
+  <span class="pill">Copiar</span>
+  <span class="pill">Exportar PNG</span>
+</div>
+
+<div class="filter-bar">
+  <button class="chip" type="button">Filtros</button>
+  <button class="chip" type="button">Visões</button>
+  <button class="chip" type="button">Campos</button>
+  <button class="chip" type="button">+ Nova tarefa</button>
+  <span class="spacer"></span>
+  <span class="count" id="row-count"></span>
+</div>
+
+<div class="workspace">
+  <div class="grid-pane" id="grid-pane">
+    <table class="sheet" id="sheet">
+      <thead>
+        <tr>
+          <th style="width: 46px">WBS</th>
+          <th style="width: 250px">Nome da tarefa</th>
+          <th style="width: 110px">Predecessores</th>
+          <th style="width: 110px">Recursos</th>
+          <th style="width: 92px" class="num">Início</th>
+          <th style="width: 92px" class="num">Término</th>
+        </tr>
+      </thead>
+      <tbody id="sheet-body"></tbody>
+    </table>
+  </div>
+
+  <div class="gantt-pane" id="gantt-pane">
+    <div class="gantt-inner" id="gantt-inner">
+      <svg class="gantt" id="gantt-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+</div>
+
+<footer class="status-bar">
+  <span>Foco: Gantt</span>
+  <button class="status-btn" type="button">Detalhes</button>
+  <button class="status-btn" type="button">Timeline</button>
+  <button class="status-btn" type="button">Calendários</button>
+  <span class="spacer"></span>
+  <span id="calc">Cálculo: —</span>
+  <span id="stats"></span>
+</footer>
+
+<div class="hint" id="hint">
+  <h2>Protótipo — roteamento de vínculos <button type="button" id="hint-toggle">ocultar</button></h2>
+  <div class="hint-body">
+    <ul>
+      <li>Cada barra expõe <strong>pontos de conexão</strong> invisíveis (esquerda, direita, topo, base); a linha nasce e morre exatamente em um deles.</li>
+      <li>O algoritmo testa todos os pares de pontos e escolhe o caminho com <strong>menos curvas</strong> (empate por comprimento), evitando atravessar barras.</li>
+      <li>Alvos do tipo <kbd>topo</kbd>/<kbd>base</kbd> permitem <strong>1 curva</strong>; pares esquerda/direita geram <strong>2 curvas</strong>.</li>
+    </ul>
+    <div class="stats" id="hint-stats"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   Dados — mesmas tarefas do projeto de demonstração da aplicação
+   ========================================================================= */
+const DAY = 86400000;
+const ORIGIN = Date.UTC(2026, 0, 1); // 01/01/2026
+
+/** @type {Array<{id:string,wbs:string,name:string,kind:'group'|'task'|'milestone',start:number,finish:number,preds:string[],resource?:string,critical?:boolean}>} */
+const TASKS = [
+  { id: "t1",  wbs: "1",   name: "Fase 1 — Planejamento",            kind: "group",     start: d(5),  finish: d(14), preds: [] },
+  { id: "t11", wbs: "1.1", name: "Levantamento de requisitos",       kind: "task",      start: d(5),  finish: d(9),  preds: [],     resource: "Ana Souza", critical: true },
+  { id: "t12", wbs: "1.2", name: "Workshop com stakeholders",        kind: "task",      start: d(12), finish: d(13), preds: ["t11"], resource: "Bruno Lima", critical: true },
+  { id: "t13", wbs: "1.3", name: "Aprovação do escopo",              kind: "milestone", start: d(14), finish: d(14), preds: ["t12"], critical: true },
+
+  { id: "t2",  wbs: "2",   name: "Fase 2 — Desenho",                 kind: "group",     start: d(15), finish: d(29), preds: [] },
+  { id: "t21", wbs: "2.1", name: "Desenho da arquitetura",           kind: "task",      start: d(15), finish: d(19), preds: ["t13"], resource: "Ana Souza", critical: true },
+  { id: "t22", wbs: "2.2", name: "Modelo de dados",                  kind: "task",      start: d(15), finish: d(21), preds: ["t13"], resource: "Carla Mendes", critical: true },
+  { id: "t23", wbs: "2.3", name: "Protótipo da interface",           kind: "task",      start: d(28), finish: d(28), preds: ["t21"], resource: "Bruno Lima", critical: true },
+  { id: "t24", wbs: "2.4", name: "Documentação da arquitetura",      kind: "task",      start: d(22), finish: d(28), preds: ["t21"], resource: "Carla Mendes" },
+  { id: "t25", wbs: "2.5", name: "Revisão técnica",                  kind: "task",      start: d(27), finish: d(29), preds: ["t22", "t23"], resource: "Ana Souza", critical: true },
+
+  { id: "t3",  wbs: "3",   name: "Fase 3 — Desenvolvimento",         kind: "group",     start: d(30), finish: d(55), preds: [] },
+  { id: "t31", wbs: "3.1", name: "Preparação do ambiente",           kind: "task",      start: d(30), finish: d(34), preds: ["t25"], resource: "Bruno Lima", critical: true },
+  { id: "t32", wbs: "3.2", name: "Módulo de cadastros",              kind: "task",      start: d(35), finish: d(48), preds: ["t31"], resource: "Ana Souza", critical: true },
+  { id: "t33", wbs: "3.3", name: "Módulo de agenda",                 kind: "task",      start: d(42), finish: d(48), preds: ["t32"], resource: "Bruno Lima", critical: true },
+  { id: "t34", wbs: "3.4", name: "Integração de e-mail",             kind: "task",      start: d(42), finish: d(48), preds: ["t32"], resource: "Carla Mendes", critical: true },
+  { id: "t36", wbs: "3.6", name: "Migração de dados",                kind: "task",      start: d(49), finish: d(53), preds: ["t34"], resource: "Carla Mendes" },
+  { id: "t35", wbs: "3.5", name: "Code review e correções",          kind: "task",      start: d(49), finish: d(55), preds: ["t33", "t34"], resource: "Ana Souza", critical: true },
+
+  { id: "t4",  wbs: "4",   name: "Fase 4 — Testes e entrega",        kind: "group",     start: d(56), finish: d(74), preds: [] },
+  { id: "t41", wbs: "4.1", name: "Testes de aceitação",              kind: "task",      start: d(56), finish: d(62), preds: ["t36", "t35"], resource: "Carla Mendes", critical: true },
+  { id: "t42", wbs: "4.2", name: "Correções do UAT",                 kind: "task",      start: d(63), finish: d(67), preds: ["t41"], resource: "Ana Souza", critical: true },
+  { id: "t43", wbs: "4.3", name: "Treinamento dos usuários",         kind: "task",      start: d(68), finish: d(70), preds: ["t42"], resource: "Bruno Lima", critical: true },
+  { id: "t44", wbs: "4.4", name: "Go-live",                          kind: "task",      start: d(71), finish: d(71), preds: ["t43"], resource: "Ana Souza", critical: true },
+  { id: "t45", wbs: "4.5", name: "Encerramento e lições aprendidas", kind: "task",      start: d(74), finish: d(74), preds: ["t44"], critical: true },
+];
+
+function d(dayOfMonth, month = 0) { return Date.UTC(2026, month, dayOfMonth); }
+
+const ROWS = TASKS;
+const byId = new Map(TASKS.map((task) => [task.id, task]));
+
+/* =========================================================================
+   Layout
+   ========================================================================= */
+const state = {
+  pxPerDay: 26,
+  rowHeight: 28,
+  headerHeight: 44,
+  showAnchors: true,
+  showCandidates: false,
+  showCurveCount: false,
+  policy: "curves",
+  hot: null,
+};
+
+const padTop = 3, padBottom = 3, stub = 10;
+const COL = { wbs: 46, name: 250, pred: 110, res: 110, start: 92, finish: 92 };
+const GRID_WIDTH = COL.wbs + COL.name + COL.pred + COL.res + COL.start + COL.finish;
+
+function x(ms) { return ((ms - ORIGIN) / DAY) * state.pxPerDay; }
+function dateAt(px) { return ORIGIN + (px / state.pxPerDay) * DAY; }
+
+function barBox(task, rowIndex) {
+  const y = state.headerHeight + rowIndex * state.rowHeight;
+  const h = state.rowHeight;
+  if (task.kind === "milestone") {
+    const size = Math.min(16, h - 8);
+    const cx = x(task.start) + state.pxPerDay / 2;
+    return { x: cx - size / 2, y: y + (h - size) / 2, w: size, h: size, cx, cy: y + h / 2 };
+  }
+  const left = x(task.start);
+  const right = x(task.finish + DAY);
+  const height = task.kind === "group" ? 14 : 17;
+  return { x: left, y: y + (h - height) / 2, w: Math.max(6, right - left), h: height, cx: (left + right) / 2, cy: y + h / 2 };
+}
+
+/* =========================================================================
+   Pontos de conexão — a linha nasce e morre exatamente em um deles
+   ========================================================================= */
+/**
+ * Os quatro pontos canônicos de uma barra. `side` diz em que direção a linha
+ * deve chegar/sair: "left"/"right" são horizontais, "top"/"bottom" verticais.
+ */
+function anchorsOf(box) {
+  return {
+    left:   { x: box.x,             y: box.cy,          side: "left",   dx: -1, dy: 0 },
+    right:  { x: box.x + box.w,     y: box.cy,          side: "right",  dx: 1,  dy: 0 },
+    top:    { x: box.cx,            y: box.y,           side: "top",    dx: 0,  dy: -1 },
+    bottom: { x: box.cx,            y: box.y + box.h,   side: "bottom", dx: 0,  dy: 1 },
+  };
+}
+
+/** Pontos que a semântica do tipo de vínculo permite na origem/destino. */
+function allowedSides(type) {
+  switch (type) {
+    case "ss": return { source: ["left", "top", "bottom"], target: ["left", "top", "bottom"] };
+    case "ff": return { source: ["right", "top", "bottom"], target: ["right", "top", "bottom"] };
+    case "sf": return { source: ["left", "top", "bottom"], target: ["right", "top", "bottom"] };
+    default:   return { source: ["right", "top", "bottom"], target: ["left", "top", "bottom"] }; // fs
+  }
+}
+
+/* =========================================================================
+   Geração de caminhos candidatos (todos ortogonais)
+   ========================================================================= */
+function isHorizontal(anchor) { return anchor.side === "left" || anchor.side === "right"; }
+
+/**
+ * Caminhos ortogonais ligando o ponto `s` ao ponto `d`.
+ * Retorna polilinhas (a primeira e a última exigem a direção do ponto).
+ */
+function candidates(s, d) {
+  const paths = [];
+  const horizS = isHorizontal(s);
+  const horizD = isHorizontal(d);
+
+  // --- alinhados: reta pura (0 curvas) ---------------------------------
+  if (horizS && horizD && Math.abs(s.y - d.y) < 0.5) {
+    paths.push([s, d]);
+  }
+  if (!horizS && !horizD && Math.abs(s.x - d.x) < 0.5) {
+    paths.push([s, d]);
+  }
+
+  if (horizS && horizD) {
+    // H-V-H: sai na horizontal, desce/sobe numa calha, entra na horizontal.
+    // duas variantes de calha: perto da origem ou perto do destino.
+    for (const rail of [s.x + Math.sign(d.x - s.x || 1) * stub, d.x - Math.sign(d.x - s.x || 1) * stub]) {
+      paths.push([s, { x: rail, y: s.y }, { x: rail, y: d.y }, d]);
+    }
+    // quando a entrada é verticalmente alcançável pelo topo/base, um L resolve.
+  }
+
+  if (horizS && !horizD) {
+    // H-V: anda na horizontal até o x do destino e desce/sobe (1 curva)
+    paths.push([s, { x: d.x, y: s.y }, d]);
+    // H-V-H-V: sai, desce numa calha, anda, entra (2 curvas) — cobre o caso
+    // em que a calha direta cruzaria a própria barra de origem.
+    const rail = s.x + Math.sign(d.x - s.x || 1) * stub;
+    paths.push([s, { x: rail, y: s.y }, { x: rail, y: d.y }, { x: d.x, y: d.y }, d]);
+  }
+
+  if (!horizS && horizD) {
+    // V-H: sobe/desce até o y do destino e anda (1 curva)
+    paths.push([s, { x: s.x, y: d.y }, d]);
+    // V-H-V-H: sai na vertical, calha horizontal, desce e entra (2 curvas)
+    const rail = d.y + Math.sign(d.y - s.y || 1) * stub;
+    paths.push([s, { x: s.x, y: rail }, { x: d.x, y: rail }, { x: d.x, y: d.y }, d]);
+  }
+
+  if (!horizS && !horizD) {
+    // V-H-V: sai vertical, anda na horizontal, entra vertical (2 curvas)
+    const rail = (s.y + d.y) / 2;
+    paths.push([s, { x: s.x, y: rail }, { x: d.x, y: rail }, d]);
+  }
+
+  return paths;
+}
+
+/* =========================================================================
+   Avaliação: nº de curvas, comprimento e colisão com barras
+   ========================================================================= */
+function countCurves(points) {
+  let curves = 0;
+  for (let i = 1; i < points.length - 1; i += 1) curves += 1;
+  return Math.max(0, curves - 0); // cada vértice interno é uma curva
+}
+
+function pathLength(points) {
+  let total = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    total += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+  }
+  return total;
+}
+
+function segmentHitsRect(p, q, rect, margin = 2) {
+  const x1 = Math.min(p.x, q.x), x2 = Math.max(p.x, q.x);
+  const y1 = Math.min(p.y, q.y), y2 = Math.max(p.y, q.y);
+  const rx1 = rect.x - margin, rx2 = rect.x + rect.w + margin;
+  const ry1 = rect.y - margin, ry2 = rect.y + rect.h + margin;
+  return x1 < rx2 && x2 > rx1 && y1 < ry2 && y2 > ry1;
+}
+
+/** Colisão com qualquer barra (exceto as duas pontas do próprio vínculo). */
+function collisions(points, boxes, ignore) {
+  let hits = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    for (let b = 0; b < boxes.length; b += 1) {
+      if (ignore.includes(b)) continue;
+      if (segmentHitsRect(points[i - 1], points[i], boxes[b])) hits += 1;
+    }
+  }
+  return hits;
+}
+
+const CURVE_PENALTY = 40; //1 curva "pesa"40 px de comprimento
+
+function evaluate(points, boxes, ignore) {
+  return {
+    points,
+    curves: countCurves(points),
+    length: pathLength(points),
+    hits: collisions(points, boxes, ignore),
+  };
+}
+
+const HORIZONTAL_SIDES = new Set(["left", "right"]);
+
+/**
+ * Custo conforme a política escolhida:
+ *  - `curves`   : menos curvas primeiro (empate por extensão);
+ *  - `length`   : caminho mais curto primeiro (empate por curvas);
+ *  - `classic`  : sempre o par borda→borda (direita→esquerda em FS), como
+ *                 no MS Project, mesmo que custe mais curvas.
+ */
+function costOf(candidate, policy) {
+  const barrier = candidate.hits * 100000;
+  if (policy === "length") return candidate.length + candidate.curves * 6 + barrier;
+  if (policy === "classic") {
+    const borderToBorder = HORIZONTAL_SIDES.has(candidate.from) && HORIZONTAL_SIDES.has(candidate.to);
+    return (borderToBorder ? 0 : 100000) + candidate.curves * 10 + candidate.length + barrier;
+  }
+  return candidate.curves * CURVE_PENALTY + candidate.length + barrier;
+}
+
+/* =========================================================================
+   Roteador: escolhe o melhor par (ponto de origem × ponto de destino)
+   ========================================================================= */
+function route(taskA, taskB, type, boxes, boxesIndex, policy) {
+  const boxA = boxes[boxesIndex.get(taskA.id)];
+  const boxB = boxes[boxesIndex.get(taskB.id)];
+  const sides = allowedSides(type);
+  const anchorsA = anchorsOf(boxA);
+  const anchorsB = anchorsOf(boxB);
+  const ignore = [boxesIndex.get(taskA.id), boxesIndex.get(taskB.id)];
+
+  const all = [];
+  for (const sideA of sides.source) {
+    for (const sideB of sides.target) {
+      for (const points of candidates(anchorsA[sideA], anchorsB[sideB])) {
+        if (points.length < 2) continue;
+        const ev = evaluate(points, boxes, ignore);
+        ev.from = sideA;
+        ev.to = sideB;
+        ev.cost = costOf(ev, policy);
+        all.push(ev);
+      }
+    }
+  }
+  all.sort((a, b) => a.cost - b.cost || a.points.length - b.points.length);
+  return { winner: all[0], all };
+}
+
+/* =========================================================================
+   Desenho: cantos arredondados + seta (mesma técnica do core)
+   ========================================================================= */
+const CORNER = 10;
+
+function roundedPath(points, radius = CORNER) {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  let out = `M ${r2(points[0].x)} ${r2(points[0].y)}`;
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const prev = points[i - 1], cur = points[i], next = points[i + 1];
+    const inLen = Math.hypot(cur.x - prev.x, cur.y - prev.y);
+    const outLen = Math.hypot(next.x - cur.x, next.y - cur.y);
+    const rad = Math.min(radius, inLen / 2, outLen / 2);
+    const before = { x: cur.x + ((prev.x - cur.x) / (inLen || 1)) * rad, y: cur.y + ((prev.y - cur.y) / (inLen || 1)) * rad };
+    const after  = { x: cur.x + ((next.x - cur.x) / (outLen || 1)) * rad, y: cur.y + ((next.y - cur.y) / (outLen || 1)) * rad };
+    out += ` L ${r2(before.x)} ${r2(before.y)}`;
+    out += ` Q ${r2(cur.x)} ${r2(cur.y)} ${r2(after.x)} ${r2(after.y)}`;
+  }
+  const last = points[points.length - 1];
+  out += ` L ${r2(last.x)} ${r2(last.y)}`;
+  return out;
+}
+const r2 = (v) => Math.round(v * 100) / 100;
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+  return node;
+}
+
+/* =========================================================================
+   Render da grade (colunas)
+   ========================================================================= */
+function fmt(ms) {
+  const date = new Date(ms);
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${date.getUTCFullYear()}`;
+}
+
+function renderSheet() {
+  const body = document.getElementById("sheet-body");
+  body.innerHTML = "";
+  ROWS.forEach((task, index) => {
+    const tr = document.createElement("tr");
+    tr.className = task.kind === "group" ? "group" : "task" + (task.critical ? " critical" : "");
+    tr.dataset.taskId = task.id;
+    const pred = task.preds.map((id) => byId.get(id).wbs).join(", ");
+    const depth = task.wbs.split(".").length - 1;
+    tr.innerHTML =
+      `<td class="mono">${task.wbs}</td>` +
+      `<td class="name"><span class="indent" style="width:${depth * 14}px"></span>${task.name}</td>` +
+      `<td class="mono">${pred}</td>` +
+      `<td>${task.resource ?? ""}</td>` +
+      `<td class="num mono">${fmt(task.start)}</td>` +
+      `<td class="num mono">${fmt(task.finish)}</td>`;
+    body.appendChild(tr);
+    void index;
+  });
+  document.getElementById("row-count").textContent = `${ROWS.length} linhas`;
+}
+
+/* =========================================================================
+   Render do Gantt
+   ========================================================================= */
+function monthName(m) {
+  return ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"][m];
+}
+
+function renderGantt() {
+  const svg = document.getElementById("gantt-svg");
+  const inner = document.getElementById("gantt-inner");
+  const pane = document.getElementById("gantt-pane");
+  svg.innerHTML = "";
+
+  const first = ROWS.reduce((min, task) => Math.min(min, task.start), Infinity);
+  const last = ROWS.reduce((max, task) => Math.max(max, task.finish), -Infinity);
+  const origin = new Date(first);
+  const startMs = Date.UTC(origin.getUTCFullYear(), origin.getUTCMonth(), 1) - 3 * DAY;
+  const endMs = last + 6 * DAY;
+
+  const width = Math.max(pane.clientWidth, ((endMs - startMs) / DAY) * state.pxPerDay);
+  const bodyHeight = ROWS.length * state.rowHeight;
+  const height = state.headerHeight + bodyHeight;
+
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  inner.style.width = width + "px";
+  inner.style.height = height + "px";
+
+  const X = (ms) => ((ms - startMs) / DAY) * state.pxPerDay;
+
+  /* --- defs: seta ------------------------------------------------------ */
+  const defs = el("defs");
+  const marker = el("marker", {
+    id: "arrow", viewBox: "0 0 8 8", refX: 7.6, refY: 4,
+    markerWidth: 8, markerHeight: 8, markerUnits: "userSpaceOnUse", orient: "auto",
+  });
+  marker.appendChild(el("path", { d: "M 0 0 L 8 4 L 0 8 Z", class: "link-arrow" }));
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+
+  /* --- fundo: fins de semana + grade ---------------------------------- */
+  const gBg = el("g");
+  let cursor = new Date(startMs);
+  cursor = Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), cursor.getUTCDate());
+  while (cursor <= endMs) {
+    const day = new Date(cursor).getUTCDay();
+    if (day === 0 || day === 6) {
+      gBg.appendChild(el("rect", { class: "weekend", x: X(cursor), y: state.headerHeight, width: state.pxPerDay, height: bodyHeight }));
+    }
+    cursor += DAY;
+  }
+
+  // linhas horizontais (uma por linha, até o fim do corpo)
+  for (let i = 1; i <= ROWS.length; i += 1) {
+    const y = state.headerHeight + i * state.rowHeight;
+    gBg.appendChild(el("line", { class: "grid-row", x1: 0, x2: width, y1: y, y2: y }));
+  }
+  // verticais: dias e viradas de mês/semana
+  for (let t = startMs; t <= endMs; t += DAY) {
+    const date = new Date(t);
+    const isMonthStart = date.getUTCDate() === 1;
+    const isWeekStart = date.getUTCDay() === 1;
+    const cls = isMonthStart ? "grid-major" : isWeekStart ? "grid-major" : "grid-minor";
+    gBg.appendChild(el("line", { class: cls, x1: X(t), x2: X(t), y1: state.headerHeight, y2: height }));
+  }
+  svg.appendChild(gBg);
+
+  /* --- cabeçalho temporal --------------------------------------------- */
+  const gHead = el("g");
+  gHead.appendChild(el("rect", { x: 0, y: 0, width, height: state.headerHeight, fill: "var(--bg-surface-2)" }));
+  gHead.appendChild(el("line", { x1: 0, x2: width, y1: state.headerHeight, y2: state.headerHeight, stroke: "var(--border-default)" }));
+
+  // banda de meses
+  let m = Date.UTC(new Date(startMs).getUTCFullYear(), new Date(startMs).getUTCMonth(), 1);
+  while (m <= endMs) {
+    const nextMonth = Date.UTC(new Date(m).getUTCFullYear(), new Date(m).getUTCMonth() + 1, 1);
+    const label = el("text", { class: "band-month", x: X(m) + 6, y: 15 });
+    label.textContent = monthName(new Date(m).getUTCMonth()) + " " + new Date(m).getUTCFullYear();
+    gHead.appendChild(label);
+    gHead.appendChild(el("line", { x1: X(m), x2: X(m), y1: 0, y2: state.headerHeight, stroke: "var(--border-default)" }));
+    m = nextMonth;
+  }
+  // banda de semanas
+  for (let t = startMs; t <= endMs; t += DAY) {
+    const date = new Date(t);
+    if (date.getUTCDay() !== 1) continue;
+    const label = el("text", { class: "band-label", x: X(t) + 5, y: 34 });
+    label.textContent = `sem ${String(date.getUTCDate()).padStart(2, "0")}/${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+    gHead.appendChild(label);
+    gHead.appendChild(el("line", { x1: X(t), x2: X(t), y1: 24, y2: state.headerHeight, stroke: "var(--border-default)" }));
+  }
+  svg.appendChild(gHead);
+
+  /* --- barras ----------------------------------------------------------- */
+  const boxes = ROWS.map((task, index) => barBox(task, index));
+  const boxesIndex = new Map(ROWS.map((task, index) => [task.id, index]));
+  const gBars = el("g");
+
+  ROWS.forEach((task, index) => {
+    const box = boxes[index];
+    if (task.kind === "milestone") {
+      const size = box.w;
+      const cx = box.x + size / 2, cy = box.y + size / 2;
+      gBars.appendChild(el("path", {
+        class: "bar-milestone",
+        d: `M ${cx} ${cy - size / 2} L ${cx + size / 2} ${cy} L ${cx} ${cy + size / 2} L ${cx - size / 2} ${cy} Z`,
+      }));
+      return;
+    }
+    const cls = task.kind === "group" ? "bar-summary" : task.critical ? "bar-critical" : "bar-task";
+    gBars.appendChild(el("rect", { class: `bar ${cls}`, x: box.x, y: box.y, width: box.w, height: box.h, rx: task.kind === "group" ? 3 : 6 }));
+    if (task.kind === "group") {
+      // pontas em seta, como na aplicação
+      const h = box.h;
+      gBars.appendChild(el("path", { class: cls, d: `M ${box.x} ${box.y} L ${box.x - 7} ${box.y + h / 2} L ${box.x} ${box.y + h} Z` }));
+      gBars.appendChild(el("path", { class: cls, d: `M ${box.x + box.w} ${box.y} L ${box.x + box.w + 7} ${box.y + h / 2} L ${box.x + box.w} ${box.y + h} Z` }));
+    }
+    // progresso (mesmo padrão listrado da aplicação)
+    const progress = task.kind === "group" ? 0.55 : 1;
+    if (progress > 0) {
+      gBars.appendChild(el("rect", {
+        class: "bar-progress", x: box.x, y: box.y, width: box.w * progress, height: box.h,
+        rx: task.kind === "group" ? 3 : 6, opacity: 0.9,
+      }));
+    }
+  });
+  svg.appendChild(gBars);
+
+  /* --- pontos de conexão (invisíveis por padrão) ----------------------- */
+  if (state.showAnchors) {
+    const gAnchors = el("g");
+    boxes.forEach((box, index) => {
+      const task = ROWS[index];
+      const anchors = anchorsOf(box);
+      const used = new Set();
+      // marca os pontos efetivamente usados
+      for (const predId of task.preds) {
+        const routed = route(byId.get(predId), task, "fs", boxes, boxesIndex, state.policy);
+        if (routed.winner) { used.add(routed.winner.from); used.add(routed.winner.to); }
+      }
+      for (const [name, anchor] of Object.entries(anchors)) {
+        const isUsed = used.has(name);
+        gAnchors.appendChild(el("circle", {
+          class: "anchor" + (isUsed ? " is-used" : ""),
+          cx: anchor.x, cy: anchor.y, r: isUsed ? 3.4 : 2.6,
+        }));
+      }
+    });
+    svg.appendChild(gAnchors);
+  }
+
+  /* --- vínculos -------------------------------------------------------- */
+  const gLinks = el("g");
+  const stats = { total: 0, one: 0, two: 0, more: 0, longest: 0 };
+
+  for (const task of ROWS) {
+    for (const predId of task.preds) {
+      const source = byId.get(predId);
+      const { winner, all } = route(source, task, "fs", boxes, boxesIndex, state.policy);
+      if (!winner) continue;
+      stats.total += 1;
+      if (winner.curves === 1) stats.one += 1;
+      else if (winner.curves === 2) stats.two += 1;
+      else if (winner.curves > 2) stats.more += 1;
+      stats.longest = Math.max(stats.longest, winner.curves);
+
+      if (state.showCandidates) {
+        for (const cand of all) {
+          if (cand === winner) continue;
+          gLinks.appendChild(el("path", { class: "candidate", d: roundedPath(cand.points) }));
+        }
+        gLinks.appendChild(el("path", { class: "candidate is-winner", d: roundedPath(winner.points) }));
+      }
+
+      const dPath = roundedPath(winner.points);
+      const path = el("path", { class: "link", d: dPath, "marker-end": "url(#arrow)" });
+      const hit = el("path", { class: "link-hit", d: dPath });
+      const title = el("title");
+      title.textContent =
+        `${source.wbs} ${source.name} → ${task.wbs} ${task.name}\n` +
+        `pontos: ${winner.from} → ${winner.to} · curvas: ${winner.curves} · extensão: ${Math.round(winner.length)} px`;
+      hit.appendChild(title);
+      gLinks.appendChild(path);
+      gLinks.appendChild(hit);
+
+      if (state.showCurveCount) {
+        const mid = winner.points[Math.floor(winner.points.length / 2)];
+        const label = el("text", { class: "link-label", x: mid.x + 6, y: mid.y - 6 });
+        label.textContent = `${winner.curves}↕`;
+        gLinks.appendChild(label);
+      }
+    }
+  }
+  svg.appendChild(gLinks);
+
+  document.getElementById("calc").textContent =
+    `Cálculo: ${ROWS.length} tarefas · ${TASKS.filter((t) => t.critical).length} críticas`;
+  document.getElementById("hint-stats").innerHTML =
+    `${stats.total} vínculos · <strong>${stats.one}</strong> com 1 curva · ` +
+    `<strong>${stats.two}</strong> com 2 curvas · ` +
+    (stats.more ? `<span class="warn">${stats.more} com 3+</span>` : "0 com 3+");
+}
+
+/* =========================================================================
+   Interação
+   ========================================================================= */
+function rerender() { renderGantt(); }
+
+document.getElementById("tg-anchors").addEventListener("click", (event) => {
+  state.showAnchors = !state.showAnchors;
+  event.currentTarget.classList.toggle("is-on", state.showAnchors);
+  rerender();
+});
+document.getElementById("tg-candidates").addEventListener("click", (event) => {
+  state.showCandidates = !state.showCandidates;
+  event.currentTarget.classList.toggle("is-on", state.showCandidates);
+  rerender();
+});
+document.getElementById("tg-labels").addEventListener("click", (event) => {
+  state.showCurveCount = !state.showCurveCount;
+  event.currentTarget.classList.toggle("is-on", state.showCurveCount);
+  rerender();
+});
+document.getElementById("policy").addEventListener("change", (event) => {
+  state.policy = event.target.value;
+  rerender();
+});
+document.getElementById("zoom").addEventListener("change", (event) => {
+  state.pxPerDay = Number(event.target.value);
+  rerender();
+});
+window.addEventListener("resize", rerender);
+
+document.getElementById("hint-toggle").addEventListener("click", () => {
+  const hint = document.getElementById("hint");
+  hint.classList.toggle("is-hidden");
+  document.getElementById("hint-toggle").textContent =
+    hint.classList.contains("is-hidden") ? "mostrar" : "ocultar";
+});
+
+renderSheet();
+rerender();
+</script>
+</body>
+</html>

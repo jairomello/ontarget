@@ -1,0 +1,84 @@
+import { describe, expect, it } from "bun:test";
+import { HOUR_MS, defaultCalendar } from "../src/calendar/calendar";
+import { runSchedule } from "../src/scheduling/pipeline";
+import type { ScheduleLinkInput, ScheduleTaskInput } from "../src/scheduling/types";
+
+/**
+ * Orçamento de performance (specs/scheduling — "Recálculo incremental e
+ * desempenho"): recálculo completo de 5.000 tarefas em até 300 ms.
+ */
+
+const MON = Date.UTC(2026, 0, 5);
+const WORKDAY = 9 * HOUR_MS;
+const COUNT = 5_000;
+const CHAINS = 10;
+const PER_CHAIN = COUNT / CHAINS;
+const BUDGET_MS = 300;
+
+function task(id: string, isSummary = false): ScheduleTaskInput {
+  return {
+    id,
+    parentId: isSummary ? null : null,
+    isSummary,
+    isInactive: false,
+    isPlaceholder: false,
+    isMilestone: false,
+    schedulingMode: "auto",
+    manualStart: null,
+    manualFinish: null,
+    duration: isSummary ? null : WORKDAY,
+    start: null,
+    finish: null,
+  };
+}
+
+/** 10 cadeias paralelas de 500 tarefas, cada uma com seu resumo. */
+function buildProject(): { tasks: ScheduleTaskInput[]; links: ScheduleLinkInput[] } {
+  const tasks: ScheduleTaskInput[] = [];
+  const links: ScheduleLinkInput[] = [];
+
+  for (let chain = 0; chain < CHAINS; chain += 1) {
+    const summaryId = `p${chain}`;
+    tasks.push(task(summaryId, true));
+    let previous: string | null = null;
+
+    for (let index = 0; index < PER_CHAIN; index += 1) {
+      const id = `t${chain}-${index}`;
+      const item = task(id);
+      item.parentId = summaryId;
+      tasks.push(item);
+
+      if (previous) {
+        links.push({
+          id: `${previous}->${id}`,
+          predecessorId: previous,
+          successorId: id,
+          type: "fs",
+          lagMs: 0,
+        });
+      }
+      previous = id;
+    }
+  }
+
+  return { tasks, links };
+}
+
+describe("performance do agendamento", () => {
+  it(`recalcula ${COUNT} tarefas em até ${BUDGET_MS} ms`, () => {
+    const { tasks, links } = buildProject();
+    const options = { tasks, links, calendar: defaultCalendar(), projectStart: MON };
+
+    // aquecimento (JIT) antes da medição
+    runSchedule(options);
+
+    const started = performance.now();
+    const result = runSchedule(options);
+    const elapsed = performance.now() - started;
+
+    // todas as cadeias têm o mesmo comprimento: tudo é crítico
+    expect(result.criticalPath.length).toBe(COUNT + CHAINS);
+    expect(result.projectFinish).toBeGreaterThan(MON);
+    expect(elapsed).toBeLessThanOrEqual(BUDGET_MS);
+  });
+});

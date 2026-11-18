@@ -1,15 +1,35 @@
 .workspace {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(320px, 42%) 1fr;
+  /* a grade nunca cresce além do que sobra para o Gantt (mín. 320px) */
+  grid-template-columns: max(340px, min(var(--sheet-width, 44%), calc(100% - 320px))) 1fr;
   height: 100%;
   min-height: 0;
+}
+
+/* Com a Timeline visível, ela ocupa a primeira faixa (specs/timeline-view). */
+.withTimeline {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.withForm {
+  grid-template-columns: max(320px, min(var(--sheet-width, 38%), calc(100% - 640px)))
+    minmax(280px, 1fr) 360px;
+}
+
+.sheetOnly {
+  grid-template-columns: 1fr;
+}
+
+.sheetOnly.withForm {
+  grid-template-columns: 1fr 360px;
 }
 
 .sheet,
 .gantt {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   background: var(--bg-surface);
 }
 
@@ -17,8 +37,111 @@
   border-right: 1px solid var(--border-default);
 }
 
+/* ------------------------------------------------------------- divisor */
+
+/* Encostado na borda esquerda do painel do Gantt, com folga para o
+   redimensionador da última coluna da grade não ficar sob ele. */
+.splitter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5px;
+  z-index: 6;
+  width: 9px;
+  cursor: col-resize;
+  background: transparent;
+  touch-action: none;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.splitter::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 1px;
+  background: var(--border-default);
+}
+
+.splitter:hover,
+.splitterActive {
+  background: var(--accent-soft);
+}
+
+.splitter:hover::after,
+.splitterActive::after {
+  width: 2px;
+  left: 3.5px;
+  background: var(--accent);
+}
+
+.splitter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.gantt {
+  position: relative;
+  /* mesma altura da barra de ferramentas do Task Sheet (que é interna à
+     grade): sem essa faixa, cabeçalho e linhas do Gantt ficam essa altura
+     acima da grade */
+  padding-top: var(--toolbar-height);
+}
+
 .placeholder {
   margin: var(--sp-5);
   color: var(--fg-subtle);
   font-size: var(--text-sm);
+}
+
+.state {
+  display: grid;
+  gap: var(--sp-2);
+  align-content: center;
+  justify-items: start;
+  height: 100%;
+  padding: var(--sp-7);
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+}
+
+.errorTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--fg-default);
+}
+
+.errorMessage {
+  margin: 0;
+  color: var(--fg-muted);
+}
+
+.snapshots {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.snapshotList {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recoverButton {
+  height: var(--control-height);
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: var(--text-sm);
+  color: var(--fg-default);
+}
+
+.recoverButton:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
 }

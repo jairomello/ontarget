@@ -20,19 +20,25 @@ test("a home carrega com o shell completo e sem erro de console", async ({ page 
   await expect(page.getByTestId("command-bar")).toBeVisible();
   await expect(page.getByTestId("status-bar")).toBeVisible();
   await expect(page.getByTestId("portfolio")).toBeVisible();
-  await expect(page.getByTestId("brand")).toHaveText("e-project");
+  await expect(page.getByTestId("brand")).toHaveText("ontarget");
 
   expect(errors).toEqual([]);
 });
 
-test("as rotas do aplicativo respondem sem erro de console", async ({ page }) => {
+test("as rotas do aplicativo respondem sem erro de console", async ({ page, request }) => {
   const errors = collectPageErrors(page);
 
-  await page.goto("/p/projeto-de-exemplo");
+  const created = await request.post("/api/projects", {
+    data: { name: `Rota E2E ${Date.now()}` },
+  });
+  expect(created.status()).toBe(201);
+  const { project } = (await created.json()) as { project: { id: string } };
+
+  await page.goto(`/p/${project.id}`);
   await expect(page.getByTestId("workspace")).toBeVisible();
   await expect(page.getByTestId("workspace")).toHaveAttribute(
     "data-project-id",
-    "projeto-de-exemplo",
+    project.id,
   );
 
   expect(errors).toEqual([]);

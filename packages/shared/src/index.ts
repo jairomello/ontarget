@@ -11,3 +11,5 @@ export type SchedulingMode = "manual" | "auto";
 
 /** Tipo de tarefa: fixa a duração, ao trabalho ou às unidades (PRD RF-02.9). */
 export type TaskType = "fixed_duration" | "fixed_work" | "fixed_units";
+
+export { newId } from "./ids";

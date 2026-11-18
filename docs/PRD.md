@@ -1,4 +1,4 @@
-# PRD — e-project
+# PRD — ontarget
 
 Produto de gerenciamento de projetos para a web, inspirado no **Microsoft Project 2010**, com visual renovado.
 
@@ -11,7 +11,7 @@ Produto de gerenciamento de projetos para a web, inspirado no **Microsoft Projec
 
 ## 1. Visão geral
 
-O **e-project** é uma aplicação web single-user, executada localmente (runtime Bun + SQLite), que reproduz a experiência de planejamento de projetos do MS Project 2010 — em especial o **Gantt Chart**, o **Task Sheet** e o agendamento controlado pelo usuário — mas com interface atual, sistema de design próprio e renderização de gráficos de alta qualidade.
+O **ontarget** é uma aplicação web single-user, executada localmente (runtime Bun + SQLite), que reproduz a experiência de planejamento de projetos do MS Project 2010 — em especial o **Gantt Chart**, o **Task Sheet** e o agendamento controlado pelo usuário — mas com interface atual, sistema de design próprio e renderização de gráficos de alta qualidade.
 
 O usuário mantém o domínio mental do MS Project (estrutura WBS, dependências, calendários, baselines, tracking), enquanto a aplicação elimina fricções antigas: nada de barras de ferramentas datadas, dialogs modais em excesso, ou exportações quebradas.
 

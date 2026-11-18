@@ -1,6 +1,6 @@
-# Design — e-project
+# Design — ontarget
 
-Especificação de design (design system + UX) do e-project.
+Especificação de design (design system + UX) do ontarget.
 Complementa `docs/PRD.md` (o *quê*) e `docs/architecture.md` (o *como*).
 
 - Versão: 0.1

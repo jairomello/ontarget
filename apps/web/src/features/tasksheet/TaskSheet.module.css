@@ -1,0 +1,365 @@
+.sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--bg-surface);
+}
+
+.toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.addButton {
+  height: 26px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: var(--text-xs);
+  color: var(--fg-muted);
+}
+
+.addButton:hover {
+  background: var(--bg-hover);
+  color: var(--fg-default);
+}
+
+.count {
+  font-size: var(--text-xs);
+  color: var(--fg-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  contain: strict;
+}
+
+/* ------------------------------------------------------------------ header */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  height: 28px;
+  background: var(--bg-surface-2);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.headerCell {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--bg-surface-2);
+  border-right: 1px solid var(--border-default);
+}
+
+/* -------------------------------------------------------------------- body */
+
+.body {
+  position: relative;
+  width: 100%;
+}
+
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--text-sm);
+  cursor: default;
+  contain: layout style;
+}
+
+.row:hover {
+  background: var(--bg-hover);
+}
+
+.selected {
+  background: var(--accent-soft);
+}
+
+.selected:hover {
+  background: var(--accent-soft);
+}
+
+/* Críticas (float total zero): filete à esquerda + nome destacado. */
+.critical {
+  box-shadow: inset 3px 0 0 var(--bar-critical);
+}
+
+.critical .nameText {
+  color: var(--bar-critical);
+  font-weight: 650;
+}
+
+.active {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.summary {
+  font-weight: 700;
+  background: var(--bg-group);
+  border-top: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.summary:hover {
+  background: var(--bg-group-strong);
+}
+
+/* As células fixas (toggle, WBS, nome) têm fundo próprio e apagavam o
+   destaque da linha de grupo — o fundo precisa ser reaplicado nelas. */
+.row.summary .sticky {
+  background: var(--bg-group);
+}
+
+.row.summary:hover .sticky {
+  background: var(--bg-group-strong);
+}
+
+.inactive .nameText {
+  color: var(--fg-subtle);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* ------------------------------------------------------------------- cells */
+
+.cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  padding: 0 var(--sp-2);
+  overflow: hidden;
+}
+
+.sticky {
+  background: var(--bg-surface);
+  z-index: 1;
+}
+
+.row:hover .sticky {
+  background: var(--bg-hover);
+}
+
+.row.selected .sticky {
+  background: transparent;
+}
+
+.header .sticky,
+.headerCell.sticky {
+  z-index: 4;
+  background: var(--bg-surface-2);
+}
+
+.numeric {
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.center {
+  justify-content: center;
+  padding: 0;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--fg-muted);
+}
+
+.name {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--fg-default);
+}
+
+.nameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hiddenBadge {
+  flex: none;
+  padding: 0 5px;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  color: var(--fg-muted);
+}
+
+.marker {
+  flex: none;
+  font-size: 9px;
+  color: var(--bar-milestone);
+}
+
+.twisty {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  line-height: 1;
+  color: var(--fg-muted);
+}
+
+.twisty:hover {
+  background: var(--bg-active);
+  color: var(--fg-default);
+}
+
+.empty {
+  padding: var(--sp-5);
+  color: var(--fg-subtle);
+  font-size: var(--text-sm);
+}
+
+/* ------------------------------------------------------- barra da grade */
+
+.toolbarRight {
+  position: relative;
+  z-index: 22;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.menuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+
+.columnsMenu {
+  position: absolute;
+  top: 34px;
+  right: var(--sp-3);
+  z-index: 21;
+  display: grid;
+  gap: 2px;
+  min-width: 190px;
+  padding: var(--sp-2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-2);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 3px var(--sp-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--fg-default);
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: var(--bg-hover);
+}
+
+.menuItem input {
+  accent-color: var(--accent);
+}
+
+/* ------------------------------------------------------- cabeçalho */
+
+.headerCell {
+  position: relative;
+}
+
+.headerLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.resizeHandle:hover {
+  background: var(--accent-soft);
+}
+
+.notice {
+  padding: 2px var(--sp-2);
+  background: var(--danger-soft);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--danger);
+}
+
+/* ------------------------------------------- agrupamento (specs/views) --- */
+
+.groupRow {
+  background: var(--bg-group);
+  border-bottom: 1px solid var(--border-default);
+  border-top: 1px solid var(--border-default);
+}
+
+.row.groupRow .sticky {
+  background: var(--bg-group);
+}
+
+.row.groupRow:hover .sticky {
+  background: var(--bg-group-strong);
+}
+
+/* seleção vence o destaque de grupo */
+.row.summary.selected .sticky,
+.row.groupRow.selected .sticky {
+  background: transparent;
+}
+
+.groupHeader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: 100%;
+  padding-right: var(--sp-3);
+  font-size: var(--text-xs);
+}
+
+.groupLabel {
+  font-weight: 700;
+  color: var(--fg-default);
+}
+
+.groupStat {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}

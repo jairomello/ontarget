@@ -1,6 +1,6 @@
-# Architecture — e-project
+# Architecture — ontarget
 
-Arquitetura técnica do e-project (v1).
+Arquitetura técnica do ontarget (v1).
 Complementa `docs/PRD.md` e `docs/Design.md`.
 
 - Versão: 0.1
@@ -45,7 +45,7 @@ Complementa `docs/PRD.md` e `docs/Design.md`.
 | Runtime/pacotes | **Bun** | runtime + test runner + package manager + servidor em um binário; `bun:sqlite` nativo (sem compilar addon) |
 | Servidor HTTP | **Hono** | ultraleve, tipado, roda nativamente no Bun (`Bun.serve({ fetch: app.fetch })`), sem middleware legacy |
 | ORM/migrações | **Drizzle ORM + drizzle-kit** | schema em TS, SQL gerado previsível, migrações versionadas, driver `bun-sqlite` |
-| Banco | **SQLite** (arquivo único `e-project.db`) | transacional, sem servidor, backup = copiar 1 arquivo |
+| Banco | **SQLite** (arquivo único `ontarget.db`) | transacional, sem servidor, backup = copiar 1 arquivo |
 | UI | **React 19 + TypeScript** | composição, ecosistema, hooks para o Gantt |
 | Build | **Vite** | dev server rápido, build estático servido pelo Hono |
 | Estilos | **CSS Modules + design tokens (CSS vars)** | controle total do visual do Gantt; sem runtime de classe dinâmica |
@@ -68,7 +68,7 @@ Complementa `docs/PRD.md` e `docs/Design.md`.
 ## 3. Estrutura do repositório
 
 ```
-e-project/
+ontarget/
 ├── package.json                 # workspaces: apps/* e packages/*
 ├── bunfig.toml
 ├── tsconfig.base.json
@@ -426,7 +426,8 @@ Invariantes garantidas e testadas:
 Todas as datas são **UTC-naive**: epoch ms tratados como "data/hora local do projeto", **nunca** convertidos para o fuso do navegador. Isso elimina classes inteiras de bugs (DST, horário de verão, troca de fuso) e reproduz o modelo do MS Project, que trabalha com séries de data sem fuso.
 
 - Exibição: formatar `Date` em UTC (`getUTCFullYear` etc.) com fuso fixo `+00:00`.
-- Conversão de entrada do usuário (`10/12`, `+2d`): interpretar como data local do projeto, gravar como UTC-naive.
+- Conversão de entrada do usuário (`10/12`, `+2d`): interpretar como data do projeto, gravar como UTC-naive.
+- **Convenção de datas**: `start` é a meia-noite do primeiro dia útil e `finish` é **inclusive** — a meia-noite do último dia trabalhado (uma tarefa seg–sex termina na sexta). Marcos têm `start === finish`. Essa é a mesma convenção do MS Project e vale para domínio, agendamento (`core/scheduling`), templates e geometria das barras.
 - Regra de ouro: **nenhum `toLocaleString` sem `timeZone: 'UTC'`**.
 
 ### 8.2 Calendários
@@ -651,7 +652,7 @@ Drizzle transaction → SQLite → dirty.clear()
 
 ```json
 {
-  "format": "e-project",
+  "format": "ontarget",
   "version": 1,
   "exportedAt": "2026-11-13T14:00:00.000Z",
   "project": { "...": "..." },
