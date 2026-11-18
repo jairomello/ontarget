@@ -245,6 +245,9 @@ test("arrastar tarefa automática oferece escolha antes de alterar", async ({ pa
   const { projectId, ids } = await seed(request);
   await page.goto(`/p/${projectId}`);
   await expect(page.getByTestId("gantt")).toBeVisible();
+  // O cálculo roda em worker: arrastar antes dele terminar pode pegar barras
+  // que ainda vão se reposicionar, e o ponteiro cai fora da barra.
+  await expect(page.getByTestId("status-schedule")).toHaveAttribute("data-tasks", "4");
 
   // --- opção "converter para manual" --------------------------------------
   const boxC = await visibleBox(barOf(page, ids.C));
